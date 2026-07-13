@@ -90,6 +90,15 @@
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 		<dependency>
+			<!-- LMAX Disruptor: habilita el logging asincrono de Log4j2
+			     (AsyncRoot/AsyncLogger). Es la ventaja de rendimiento clave
+			     frente a Logback: el hilo de la peticion no espera al disco.
+			     La version no la gestiona el BOM de Spring Boot, se fija aqui. -->
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.4.4</version>
+		</dependency>
+		<dependency>
 			<!-- Habilita los aspectos (@Aspect) del log transaccional -->
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjweaver</artifactId>
