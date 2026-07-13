@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sistema de logs de RecyOps (Log4j2):
+    logs/recyops-api.log   -> log general de la aplicacion (INFO+)
+    logs/transacciones.log -> operaciones de negocio (logger TRANSACCIONES)
+    logs/errores.log       -> solo WARN y ERROR, con stack trace completo
+  Cada archivo rota al llegar a 20 MB; se conservan 30 dias o hasta 1 GB.
+  Cada linea incluye el usuario autenticado y el esquema de empresa (MDC / ThreadContext).
+-->
+<Configuration status="WARN">
+
+    <Properties>
+        <Property name="RUTA_LOGS">logs</Property>
+        <Property name="PATRON">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [usuario=%X{usuario}|empresa=%X{empresa}] %logger{40} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+
+        <Console name="CONSOLA" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATRON}"/>
+        </Console>
+
+        <RollingFile name="ARCHIVO_GENERAL"
+                     fileName="${RUTA_LOGS}/recyops-api.log"
+                     filePattern="${RUTA_LOGS}/recyops-api.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="${PATRON}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${RUTA_LOGS}" maxDepth="1">
+                    <IfFileName glob="recyops-api.*.log">
+                        <IfAny>
+                            <IfLastModified age="30d"/>
+                            <IfAccumulatedFileSize exceeds="1GB"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="ARCHIVO_TRANSACCIONES"
+                     fileName="${RUTA_LOGS}/transacciones.log"
+                     filePattern="${RUTA_LOGS}/transacciones.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="${PATRON}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${RUTA_LOGS}" maxDepth="1">
+                    <IfFileName glob="transacciones.*.log">
+                        <IfAny>
+                            <IfLastModified age="30d"/>
+                            <IfAccumulatedFileSize exceeds="1GB"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="ARCHIVO_ERRORES"
+                     fileName="${RUTA_LOGS}/errores.log"
+                     filePattern="${RUTA_LOGS}/errores.%d{yyyy-MM-dd}.%i.log">
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${PATRON}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${RUTA_LOGS}" maxDepth="1">
+                    <IfFileName glob="errores.*.log">
+                        <IfAny>
+                            <IfLastModified age="30d"/>
+                            <IfAccumulatedFileSize exceeds="1GB"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- Log transaccional: solo lo que emite el AspectoLogTransaccional -->
+        <Logger name="TRANSACCIONES" level="DEBUG" additivity="false">
+            <AppenderRef ref="ARCHIVO_TRANSACCIONES"/>
+        </Logger>
+
+        <Root level="INFO">
+            <AppenderRef ref="CONSOLA"/>
+            <AppenderRef ref="ARCHIVO_GENERAL"/>
+            <AppenderRef ref="ARCHIVO_ERRORES"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>
