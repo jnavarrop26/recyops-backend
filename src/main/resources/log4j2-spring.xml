@@ -85,16 +85,20 @@
 
     <Loggers>
 
-        <!-- Log transaccional: solo lo que emite el AspectoLogTransaccional -->
-        <Logger name="TRANSACCIONES" level="DEBUG" additivity="false">
-            <AppenderRef ref="ARCHIVO_TRANSACCIONES"/>
-        </Logger>
+        <!-- Loggers asincronos (LMAX Disruptor): el hilo de la peticion no se
+             bloquea escribiendo a disco; los eventos se encolan y un hilo aparte
+             los vuelca. Es la razon principal para usar Log4j2 en lugar de Logback. -->
 
-        <Root level="INFO">
+        <!-- Log transaccional: solo lo que emite el AspectoLogTransaccional -->
+        <AsyncLogger name="TRANSACCIONES" level="DEBUG" additivity="false">
+            <AppenderRef ref="ARCHIVO_TRANSACCIONES"/>
+        </AsyncLogger>
+
+        <AsyncRoot level="INFO">
             <AppenderRef ref="CONSOLA"/>
             <AppenderRef ref="ARCHIVO_GENERAL"/>
             <AppenderRef ref="ARCHIVO_ERRORES"/>
-        </Root>
+        </AsyncRoot>
 
     </Loggers>
 
