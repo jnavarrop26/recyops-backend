@@ -1,0 +1,34 @@
+# Observabilidad local de RecyOps: Prometheus (recolecta) + Grafana (grafica).
+# Uso:  docker compose up -d      (desde esta carpeta)
+#   Prometheus: http://localhost:9090
+#   Grafana:    http://localhost:3000  (admin / recyops)
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: recyops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - datos-prometheus:/prometheus
+    extra_hosts:
+      # Permite que el contenedor alcance el API que corre en tu Windows
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: recyops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: recyops
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - datos-grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  datos-prometheus:
+  datos-grafana:

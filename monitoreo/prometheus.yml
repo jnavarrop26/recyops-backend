@@ -1,0 +1,13 @@
+# Prometheus lee las metricas del API cada 15 segundos.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: recyops-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # host.docker.internal = tu maquina Windows vista desde el contenedor
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          servicio: recyops-api

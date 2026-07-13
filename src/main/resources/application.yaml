@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: recyops-api
+
+  config:
+    # Secretos locales de desarrollo; en despliegue no existe y se ignora
+    # porque las variables llegan del entorno (dashboard del proveedor).
+    import: "optional:file:.env.properties"
+
+  datasource:
+    # Pooler de Supabase en modo Session (puerto 5432), proyecto recy-ops.
+    # La URL debe llevar ?sslmode=require: el driver JDBC NO cifra por defecto.
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USER}
+    password: ${SUPABASE_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    # El DDL se aplica manualmente por esquema con src/main/resources/db/esquema_empresa.sql
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Claves de firma de Supabase Auth (Authentication > JWT Keys > firma asimetrica).
+          # Si el proyecto usa el JWT secret legado (HS256), ver docs/ESQUEMA_SUPABASE.md.
+          jwk-set-uri: ${SUPABASE_URL:https://dggpfcefzalyoyvgjjxu.supabase.co}/auth/v1/.well-known/jwks.json
+          # Supabase firma los access token con ES256 (curva P-256)
+          jws-algorithms: ES256
+
+supabase:
+  url: ${SUPABASE_URL}
+  anon-key: ${SUPABASE_ANON_KEY}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+  # Esquema usado cuando el JWT no trae app_metadata.empresa_schema (p. ej. en desarrollo)
+  esquema-por-defecto: ${RECYOPS_ESQUEMA_DEFECTO:empresa_demo}
+
+recyops:
+  cors:
+    # Origen del cliente Vite/Bun en desarrollo
+    origenes-permitidos: ${RECYOPS_CORS_ORIGENES:http://localhost:5173}
+  auth:
+    # Limite de peticiones por IP y por minuto sobre /api/auth/** (anti fuerza bruta)
+    max-intentos-por-minuto: ${RECYOPS_AUTH_MAX_INTENTOS:10}
+  rate-limit:
+    # Limite global por IP y por minuto sobre todo /api/** (contencion basica)
+    global-por-minuto: ${RECYOPS_RATE_GLOBAL:120}
+    # Solo poner true en produccion detras de un proxy de confianza (Render/Vercel):
+    # ahi X-Forwarded-For lo fija el proxy. En acceso directo el cliente lo falsifica,
+    # asi que en local/dev se usa la IP real del socket (infalsificable).
+    confiar-en-proxy: ${RECYOPS_CONFIAR_PROXY:false}
+  # En produccion: true -> se rechazan JWT sin claim empresa_schema en lugar de
+  # caer al esquema por defecto (evita accesos accidentales entre empresas).
+  esquema-estricto: ${RECYOPS_ESQUEMA_ESTRICTO:false}
+
+# Observabilidad: Actuator + Micrometer -> Prometheus -> Grafana (ver monitoreo/)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      # Todas las metricas llevan el nombre de la app (util con varios servicios)
+      application: ${spring.application.name}
+
+server:
+  port: 8080
+  tomcat:
+    # Carpeta de trabajo de Tomcat dentro del proyecto. Evita el error
+    # "Unable to create tempDir" cuando java.io.tmpdir apunta a C:\WINDOWS.
+    basedir: .tomcat

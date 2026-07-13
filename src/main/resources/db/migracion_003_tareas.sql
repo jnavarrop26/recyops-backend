@@ -1,0 +1,25 @@
+-- ============================================================================
+-- Migracion 003: tareas asignadas a trabajadores (tablero kanban).
+-- Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- ============================================================================
+
+set search_path to empresa_demo;
+
+create table if not exists tareas (
+    id                uuid primary key default gen_random_uuid(),
+    titulo            varchar(200) not null,
+    descripcion       text,
+    asignado_id       uuid not null references usuarios (id),
+    bodega_id         uuid references bodegas (id),
+    prioridad         varchar(10) not null default 'MEDIA' check (prioridad in ('BAJA','MEDIA','ALTA')),
+    estado            varchar(15) not null default 'PENDIENTE'
+                      check (estado in ('PENDIENTE','EN_PROGRESO','COMPLETADA','CANCELADA')),
+    fecha_limite      date,
+    creado_por_nombre varchar(200) not null,
+    fecha_creacion    timestamp not null default now(),
+    fecha_completada  timestamp
+);
+
+create index if not exists idx_tareas_asignado on tareas (asignado_id);
+
+set search_path to public;

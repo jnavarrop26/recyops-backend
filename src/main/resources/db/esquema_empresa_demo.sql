@@ -1,0 +1,252 @@
+-- ============================================================================
+-- RecyOps - DDL del esquema de UNA empresa
+--
+-- Como usarlo (por cada empresa nueva):
+--   1. Reemplaza empresa_demo por el nombre del esquema de la empresa
+--      (minusculas, sin espacios; ej: empresa_ecoverde).
+--   2. Ejecuta el script completo en el SQL Editor de Supabase.
+--   3. Registra la empresa en public.empresas con ese schema_name.
+--
+-- Cada empresa obtiene una copia identica de estas tablas dentro de su propio
+-- esquema: los datos quedan fisicamente separados sin multitenancy por filas.
+-- ============================================================================
+
+create schema if not exists empresa_demo;
+set search_path to empresa_demo;
+
+-- ------------------------------------------------------------ modulo usuario
+create table roles (
+    id     uuid primary key default gen_random_uuid(),
+    nombre varchar(50) not null unique
+);
+
+insert into roles (nombre) values ('ADMIN'), ('OPERARIO');
+
+-- ------------------------------------------------------------ modulo bodega
+create table bodegas (
+    id                uuid primary key default gen_random_uuid(),
+    nombre            varchar(200) not null,
+    direccion         varchar(300) not null,
+    telefono          varchar(30),
+    email             varchar(150),
+    nit               varchar(30) not null,
+    latitud           double precision,
+    longitud          double precision,
+    tipo_organizacion varchar(20) not null check (tipo_organizacion in ('PROPIA','ALIADA','TERCERIZADA')),
+    estado            varchar(20) not null default 'ACTIVA' check (estado in ('ACTIVA','INACTIVA','MANTENIMIENTO')),
+    fecha_creacion    timestamp not null default now()
+);
+
+create table usuarios (
+    id              uuid primary key default gen_random_uuid(),
+    supabase_id     uuid unique,
+    nombre_completo varchar(200) not null,
+    username        varchar(100) not null unique,
+    email           varchar(150) not null unique,
+    telefono        varchar(30),
+    estado          varchar(20) not null default 'ACTIVO' check (estado in ('ACTIVO','INACTIVO')),
+    rol_id          uuid not null references roles (id),
+    bodega_id       uuid references bodegas (id),
+    fecha_creacion  timestamp not null default now()
+);
+
+-- ----------------------------------------------------------- modulo material
+create table opciones_catalogo (
+    id                     uuid primary key default gen_random_uuid(),
+    tipo                   varchar(20) not null check (tipo in ('CATEGORIA','SUBCATEGORIA','RESINA','COLOR')),
+    codigo                 varchar(50) not null,
+    nombre                 varchar(150) not null,
+    es_termoplastico       boolean,
+    categoria_padre_codigo varchar(50),
+    unique (tipo, codigo)
+);
+
+-- Semillas editables del catalogo (ajustalas a la operacion real)
+insert into opciones_catalogo (tipo, codigo, nombre) values
+    ('CATEGORIA', 'PLASTICO', 'Plastico'),
+    ('CATEGORIA', 'PAPEL',    'Papel'),
+    ('CATEGORIA', 'CARTON',   'Carton'),
+    ('CATEGORIA', 'VIDRIO',   'Vidrio'),
+    ('CATEGORIA', 'METAL',    'Metal');
+
+insert into opciones_catalogo (tipo, codigo, nombre, categoria_padre_codigo) values
+    ('SUBCATEGORIA', 'RIGIDO',   'Rigido',   'PLASTICO'),
+    ('SUBCATEGORIA', 'FLEXIBLE', 'Flexible', 'PLASTICO'),
+    ('SUBCATEGORIA', 'SOPLADO',  'Soplado',  'PLASTICO');
+
+insert into opciones_catalogo (tipo, codigo, nombre, es_termoplastico) values
+    ('RESINA', 'PET',  'PET - Tereftalato de polietileno', true),
+    ('RESINA', 'HDPE', 'HDPE - Polietileno de alta densidad', true),
+    ('RESINA', 'PVC',  'PVC - Policloruro de vinilo', true),
+    ('RESINA', 'LDPE', 'LDPE - Polietileno de baja densidad', true),
+    ('RESINA', 'PP',   'PP - Polipropileno', true),
+    ('RESINA', 'PS',   'PS - Poliestireno', true),
+    ('RESINA', 'OTROS','Otras resinas', false);
+
+insert into opciones_catalogo (tipo, codigo, nombre) values
+    ('COLOR', 'NATURAL', 'Natural'),
+    ('COLOR', 'BLANCO',  'Blanco'),
+    ('COLOR', 'VERDE',   'Verde'),
+    ('COLOR', 'AMBAR',   'Ambar'),
+    ('COLOR', 'MIXTO',   'Mixto');
+
+create table materiales (
+    id              uuid primary key default gen_random_uuid(),
+    nombre          varchar(200) not null,
+    categoria_id    uuid not null references opciones_catalogo (id),
+    subcategoria_id uuid references opciones_catalogo (id),
+    resina_id       uuid references opciones_catalogo (id),
+    color_id        uuid references opciones_catalogo (id),
+    unidad_medida   varchar(20) not null check (unidad_medida in ('KILOGRAMO','TONELADA','UNIDAD')),
+    unidad_empaque  varchar(20) not null check (unidad_empaque in ('GRANEL','PACA')),
+    precio_base     numeric(14,2) not null,
+    factor_calidad  numeric(6,2) not null default 1,
+    umbral_merma    numeric(6,2),
+    activo          boolean not null default true,
+    fecha_creacion  timestamp not null default now()
+);
+
+-- ---------------------------------------------------------- modulo proveedor
+create table proveedores (
+    id             uuid primary key default gen_random_uuid(),
+    nombre         varchar(200) not null,
+    nit            varchar(30) not null unique,
+    contacto       varchar(150),
+    telefono       varchar(30),
+    email          varchar(150),
+    direccion      varchar(300),
+    calificacion   numeric(3,1) not null default 0,
+    estado         varchar(20) not null default 'ACTIVO' check (estado in ('ACTIVO','INACTIVO','BLOQUEADO')),
+    fecha_creacion timestamp not null default now()
+);
+
+-- ----------------------------------------------------------- modulo convenio
+create sequence convenios_codigo_seq;
+
+create table convenios (
+    id             uuid primary key default gen_random_uuid(),
+    codigo         varchar(20) not null unique,
+    nombre         varchar(200) not null,
+    tipo           varchar(20) not null check (tipo in ('COMPRA','VENTA','INTERCAMBIO','SERVICIO')),
+    proveedor_id   uuid references proveedores (id),
+    bodega_id      uuid references bodegas (id),
+    fecha_inicio   date not null,
+    fecha_fin      date,
+    valor_total    numeric(16,2),
+    responsable    varchar(200),
+    descripcion    text,
+    estado         varchar(20) not null default 'ACTIVO' check (estado in ('ACTIVO','INACTIVO','VENCIDO','SUSPENDIDO')),
+    fecha_creacion timestamp not null default now()
+);
+
+-- ------------------------------------------------------------ modulo entrega
+create sequence entregas_codigo_seq;
+
+create table entregas (
+    id                      uuid primary key default gen_random_uuid(),
+    codigo                  varchar(20) not null unique,
+    proveedor_id            uuid not null references proveedores (id),
+    bodega_id               uuid not null references bodegas (id),
+    tipo_material_id        uuid not null references materiales (id),
+    peso_kg                 numeric(14,2) not null,
+    persona_entrega         varchar(200),
+    estado                  varchar(20) not null default 'RECIBIDA'
+                            check (estado in ('RECIBIDA','EN_PROCESO','PROCESADA','DESPACHADA')),
+    fecha_recepcion         timestamp not null,
+    usuario_registro_nombre varchar(200) not null
+);
+
+create index idx_entregas_proveedor on entregas (proveedor_id);
+create index idx_entregas_bodega    on entregas (bodega_id);
+create index idx_entregas_fecha     on entregas (fecha_recepcion desc);
+
+-- -------------------------------------------------- modulo ingreso de material
+create table ingresos_material (
+    id              bigint generated by default as identity primary key,
+    -- Codigo universal del recibo: se imprime junto al folio REC-XXXXXX
+    uuid            uuid not null unique default gen_random_uuid(),
+    fecha           timestamp not null default now(),
+    cliente         varchar(200) not null,
+    cedula          varchar(30) not null,
+    bodega_destino  varchar(200) not null,
+    encargado       varchar(200) not null,
+    placa_vehiculo  varchar(15),
+    peso_neto_total numeric(14,2) not null,
+    total           numeric(16,2) not null,
+    estado          varchar(20) not null default 'POR_CLASIFICAR'
+                    check (estado in ('POR_CLASIFICAR','EN_BODEGA','DESPACHADO','RECHAZADO'))
+);
+
+create table detalles_ingreso (
+    id            uuid primary key default gen_random_uuid(),
+    ingreso_id    bigint not null references ingresos_material (id) on delete cascade,
+    categoria     varchar(100) not null,
+    peso_bruto    numeric(14,2) not null,
+    tara          numeric(14,2) not null default 0,
+    peso_neto     numeric(14,2) not null,
+    precio_kilo   numeric(14,2) not null,
+    subtotal      numeric(16,2) not null,
+    observaciones varchar(500)
+);
+
+create index idx_detalles_ingreso on detalles_ingreso (ingreso_id);
+
+-- ------------------------------------------------------------- modulo tarea
+create table tareas (
+    id                uuid primary key default gen_random_uuid(),
+    titulo            varchar(200) not null,
+    descripcion       text,
+    asignado_id       uuid not null references usuarios (id),
+    bodega_id         uuid references bodegas (id),
+    prioridad         varchar(10) not null default 'MEDIA' check (prioridad in ('BAJA','MEDIA','ALTA')),
+    estado            varchar(15) not null default 'PENDIENTE'
+                      check (estado in ('PENDIENTE','EN_PROGRESO','COMPLETADA','REVISION','CANCELADA')),
+    fecha_limite      date,
+    creado_por_nombre varchar(200) not null,
+    fecha_creacion    timestamp not null default now(),
+    fecha_completada  timestamp
+);
+
+create index idx_tareas_asignado on tareas (asignado_id);
+
+-- Bitacora de avances de cada tarea (evidencia de trabajo, inmutable)
+create table avances_tarea (
+    id             uuid primary key default gen_random_uuid(),
+    tarea_id       uuid not null references tareas (id) on delete cascade,
+    cantidad       numeric(14,2),
+    descripcion    varchar(300) not null,
+    usuario_nombre varchar(200) not null,
+    fecha_registro timestamp not null default now()
+);
+
+create index idx_avances_tarea on avances_tarea (tarea_id);
+
+-- --------------------------------------------------------- modulo inventario
+create table lineas_inventario (
+    id                  uuid primary key default gen_random_uuid(),
+    bodega_id           uuid not null references bodegas (id),
+    tipo_material_id    uuid not null references materiales (id),
+    stock_actual        numeric(14,2) not null default 0,
+    stock_minimo        numeric(14,2) not null,
+    stock_maximo        numeric(14,2) not null,
+    fecha_actualizacion timestamp not null default now(),
+    unique (bodega_id, tipo_material_id)
+);
+
+create table movimientos_inventario (
+    id                uuid primary key default gen_random_uuid(),
+    linea_id          uuid not null references lineas_inventario (id),
+    tipo_operacion    varchar(20) not null
+                      check (tipo_operacion in ('ENTRADA','SALIDA','AJUSTE','MERMA','TRANSFORMACION')),
+    cantidad          numeric(14,2) not null,
+    cantidad_anterior numeric(14,2) not null,
+    cantidad_nueva    numeric(14,2) not null,
+    referencia        varchar(300),
+    usuario_nombre    varchar(200) not null,
+    fecha_registro    timestamp not null default now()
+);
+
+create index idx_movimientos_linea on movimientos_inventario (linea_id, fecha_registro desc);
+
+-- Restaura el search_path de la sesion
+set search_path to public;
