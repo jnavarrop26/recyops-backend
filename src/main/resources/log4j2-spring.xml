@@ -24,6 +24,7 @@
                      fileName="${RUTA_LOGS}/recyops-api.log"
                      filePattern="${RUTA_LOGS}/recyops-api.%d{yyyy-MM-dd}.%i.log">
             <PatternLayout pattern="${PATRON}"/>
+
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="20MB"/>
