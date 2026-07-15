@@ -3,15 +3,15 @@ target/
 .tomcat/
 logs/
 
+
 ### Secretos locales — nunca commitear ###
 .env
 .env.properties
 .claude/
-.graphify-out/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.docs/
+
 
 ### STS ###
 .apt_generated
@@ -45,4 +45,12 @@ build/
 ### env ###
 .env
 .env.properties
-.CLAUDE.md
+
+### graphify ###
+graphify-out/
+
+### CLAUDE ###
+CLAUDE.md
+
+### docs ###
+docs/
