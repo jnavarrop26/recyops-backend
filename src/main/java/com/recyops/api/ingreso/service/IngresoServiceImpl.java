@@ -5,6 +5,7 @@ import com.recyops.api.ingreso.dtos.CuerpoIngreso;
 import com.recyops.api.ingreso.dtos.RespuestaIngreso;
 import com.recyops.api.ingreso.entity.DetalleIngreso;
 import com.recyops.api.ingreso.entity.IngresoMaterial;
+import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.ingreso.excepciones.IngresoNoEncontradoException;
 import com.recyops.api.ingreso.interfaces.IngresoService;
 import com.recyops.api.ingreso.repository.IngresoMaterialRepository;
@@ -54,6 +55,7 @@ public class IngresoServiceImpl implements IngresoService {
     }
 
     @Override
+    @LogTransaccional(operacion = "INGRESO_REGISTRADO")
     public RespuestaIngreso registrar(CuerpoIngreso cuerpo) {
         IngresoMaterial ingreso = IngresoMaterial.builder()
                 .cliente(cuerpo.cliente())

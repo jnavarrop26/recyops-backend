@@ -3,6 +3,7 @@ target/
 .tomcat/
 logs/
 
+
 ### Secretos locales — nunca commitear ###
 .env
 .env.properties
@@ -10,6 +11,7 @@ logs/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
 
 ### STS ###
 .apt_generated
@@ -39,6 +41,16 @@ build/
 ### VS Code ###
 .vscode/
 
+
 ### env ###
 .env
 .env.properties
+
+### graphify ###
+graphify-out/
+
+### CLAUDE ###
+CLAUDE.md
+
+### docs ###
+docs/

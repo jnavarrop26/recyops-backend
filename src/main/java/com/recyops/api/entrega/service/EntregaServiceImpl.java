@@ -4,6 +4,7 @@ import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.UsuarioAutenticado;
 import com.recyops.api.comun.dtos.RespuestaPagina;
+import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
 import com.recyops.api.entrega.dtos.RespuestaEntrega;
 import com.recyops.api.entrega.entity.Entrega;
@@ -64,6 +65,7 @@ public class EntregaServiceImpl implements EntregaService {
     }
 
     @Override
+    @LogTransaccional(operacion = "ENTREGA_REGISTRADA")
     public RespuestaEntrega registrar(CuerpoEntrega cuerpo) {
         var proveedor = proveedorRepository.findById(cuerpo.proveedorId())
                 .orElseThrow(() -> new ProveedorNoEncontradoException(cuerpo.proveedorId()));

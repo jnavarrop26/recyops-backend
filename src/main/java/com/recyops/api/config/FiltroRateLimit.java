@@ -59,9 +59,10 @@ public class FiltroRateLimit extends OncePerRequestFilter {
         boolean esAuth = peticion.getRequestURI().startsWith("/api/auth/");
         long ventana = System.currentTimeMillis() / 60_000;
 
-        // Limpieza simple cuando el mapa acumula ventanas viejas
+        // Elimina solo entradas de ventanas anteriores; nunca resetea contadores activos
         if (contadores.size() > LIMPIAR_CADA_ENTRADAS) {
-            contadores.clear();
+            String sufijoVentanaActual = "|" + ventana;
+            contadores.keySet().removeIf(k -> !k.endsWith(sufijoVentanaActual));
         }
 
         // Capa global (aplica a todas las peticiones /api/**)
