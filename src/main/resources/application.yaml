@@ -57,7 +57,7 @@ recyops:
     confiar-en-proxy: ${RECYOPS_CONFIAR_PROXY:false}
   # En produccion: true -> se rechazan JWT sin claim empresa_schema en lugar de
   # caer al esquema por defecto (evita accesos accidentales entre empresas).
-  esquema-estricto: ${RECYOPS_ESQUEMA_ESTRICTO:false}
+  esquema-estricto: ${RECYOPS_ESQUEMA_ESTRICTO:true}
 
 # Observabilidad: Actuator + Micrometer -> Prometheus -> Grafana (ver monitoreo/)
 management:

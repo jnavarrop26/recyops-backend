@@ -3,6 +3,7 @@ package com.recyops.api.inventario.service;
 import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.UsuarioAutenticado;
+import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.inventario.dtos.CuerpoAjuste;
 import com.recyops.api.inventario.dtos.CuerpoCrearLinea;
@@ -139,6 +140,7 @@ public class InventarioServiceImpl implements InventarioService {
     }
 
     @Override
+    @LogTransaccional(operacion = "INVENTARIO_AJUSTADO")
     public RespuestaLineaInventario registrarAjuste(UUID id, CuerpoAjuste cuerpo) {
         LineaInventario linea = buscarLinea(id);
         BigDecimal anterior = linea.getStockActual();
@@ -150,6 +152,7 @@ public class InventarioServiceImpl implements InventarioService {
     }
 
     @Override
+    @LogTransaccional(operacion = "MERMA_REGISTRADA")
     public RespuestaLineaInventario registrarMerma(UUID id, CuerpoMerma cuerpo) {
         LineaInventario linea = buscarLinea(id);
         BigDecimal anterior = linea.getStockActual();
