@@ -47,6 +47,9 @@ public class FiltroEsquemaEmpresa extends OncePerRequestFilter {
                 if (esquema instanceof String nombre && ContextoEmpresa.esNombreValido(nombre)) {
                     ContextoEmpresa.establecer(nombre);
                     MDC.put("empresa", nombre);
+                } else if (esSuperAdmin(autenticacion)) {
+                    // Los super admins operan a nivel de plataforma, sin esquema de empresa
+                    MDC.put("empresa", "PLATFORM");
                 } else if (esquemaEstricto) {
                     log.warn("JWT sin claim empresa_schema rechazado (modo estricto): sub={}",
                             tokenJwt.getToken().getSubject());
@@ -71,5 +74,10 @@ public class FiltroEsquemaEmpresa extends OncePerRequestFilter {
                 {"timestamp":"%s","status":401,"error":"Unauthorized",\
                 "mensaje":"Tu usuario no tiene empresa asignada; contacta al administrador",\
                 "ruta":"%s"}""".formatted(LocalDateTime.now(), peticion.getRequestURI()));
+    }
+
+    private boolean esSuperAdmin(Authentication autenticacion) {
+        return autenticacion.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_SUPERADMIN".equals(a.getAuthority()));
     }
 }

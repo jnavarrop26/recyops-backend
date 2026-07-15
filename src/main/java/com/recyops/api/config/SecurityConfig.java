@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/prometheus").hasRole("ADMIN")
+                        .requestMatchers("/api/platform/**").hasRole("SUPERADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // El operario LEE los catalogos que necesita para operar
