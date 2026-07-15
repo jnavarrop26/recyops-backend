@@ -4,6 +4,7 @@ import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.UsuarioAutenticado;
 import com.recyops.api.comun.excepciones.ReglaNegocioException;
+import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.tarea.dtos.CuerpoAvance;
 import com.recyops.api.tarea.dtos.CuerpoTarea;
 import com.recyops.api.tarea.dtos.RespuestaAvance;
@@ -91,6 +92,7 @@ public class TareaServiceImpl implements TareaService {
     }
 
     @Override
+    @LogTransaccional(operacion = "TAREA_ESTADO_CAMBIADO")
     public RespuestaTarea cambiarEstado(UUID id, EstadoTarea valor) {
         Tarea tarea = buscarEntidad(id);
 

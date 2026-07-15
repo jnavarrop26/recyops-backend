@@ -2,6 +2,7 @@ package com.recyops.api.usuario.service;
 
 import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
+import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.config.PropiedadesSupabase;
 import com.recyops.api.tenant.ContextoEmpresa;
 import com.recyops.api.usuario.dtos.CuerpoEditarTrabajador;
@@ -18,14 +19,20 @@ import com.recyops.api.usuario.excepciones.UsuarioNoEncontradoException;
 import com.recyops.api.usuario.interfaces.UsuarioService;
 import com.recyops.api.usuario.repository.RolRepository;
 import com.recyops.api.usuario.repository.UsuarioRepository;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 public class UsuarioServiceImpl implements UsuarioService {
+
+    private static final String CHARS_PASSWORD =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
@@ -50,6 +57,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    @LogTransaccional(operacion = "TRABAJADOR_REGISTRADO")
     public RespuestaTrabajadorCreado registrarTrabajador(CuerpoTrabajador cuerpo) {
         if (usuarioRepository.existsByUsername(cuerpo.username())) {
             throw new UsuarioDuplicadoException("username", cuerpo.username());
@@ -63,7 +71,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new BodegaNoEncontradaException(cuerpo.bodegaId()));
 
         boolean passwordPropia = cuerpo.password() != null && !cuerpo.password().isBlank();
-        String passwordTemporal = passwordPropia ? null : UUID.randomUUID().toString().substring(0, 10);
+        String passwordTemporal = passwordPropia ? null : generarPasswordTemporal();
         String passwordDefinitiva = passwordPropia ? cuerpo.password() : passwordTemporal;
 
         // El nuevo trabajador queda en el mismo esquema de la empresa del admin
@@ -125,6 +133,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    @LogTransaccional(operacion = "USUARIO_ESTADO_CAMBIADO")
     public RespuestaTrabajador cambiarEstado(UUID id, EstadoUsuario valor) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(id));
@@ -150,5 +159,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByBodegaId(bodegaId).stream()
                 .map(RespuestaUsuarioBodega::desde)
                 .toList();
+    }
+
+    private String generarPasswordTemporal() {
+        return SECURE_RANDOM.ints(12, 0, CHARS_PASSWORD.length())
+                .mapToObj(i -> String.valueOf(CHARS_PASSWORD.charAt(i)))
+                .collect(Collectors.joining());
     }
 }
