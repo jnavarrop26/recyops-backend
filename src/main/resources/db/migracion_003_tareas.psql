@@ -1,9 +1,14 @@
 -- ============================================================================
 -- Migracion 003: tareas asignadas a trabajadores (tablero kanban).
 -- Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
 -- ============================================================================
 
-set search_path to empresa_demo;
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
 
 create table if not exists tareas (
     id                uuid primary key default gen_random_uuid(),

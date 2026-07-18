@@ -1,0 +1,41 @@
+-- ============================================================================
+-- Migracion 005: pago de ingresos de material.
+--   - estado vuelve a tener solo los 4 valores del flujo operativo.
+--   - estado_pago: POR_PAGAR / PAGADO (nueva columna, no nula).
+--   - metodo_pago: EFECTIVO / TRANSFERENCIA (solo al marcar pagado).
+-- Idempotente. Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
+-- ============================================================================
+
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
+
+alter table ingresos_material add column if not exists estado_pago varchar(20);
+alter table ingresos_material add column if not exists metodo_pago varchar(20);
+
+-- Esquemas donde el pago vivia dentro del estado operativo: se traslada
+-- a estado_pago y el estado operativo vuelve a su valor inicial.
+update ingresos_material set estado_pago = estado where estado in ('POR_PAGAR','PAGADO');
+update ingresos_material set estado = 'POR_CLASIFICAR' where estado in ('POR_PAGAR','PAGADO');
+update ingresos_material set estado_pago = 'POR_PAGAR' where estado_pago is null;
+
+alter table ingresos_material alter column estado_pago set not null;
+alter table ingresos_material alter column estado_pago set default 'POR_PAGAR';
+alter table ingresos_material alter column estado set default 'POR_CLASIFICAR';
+
+alter table ingresos_material drop constraint if exists ingresos_material_estado_check;
+alter table ingresos_material add constraint ingresos_material_estado_check
+    check (estado in ('POR_CLASIFICAR','EN_BODEGA','DESPACHADO','RECHAZADO'));
+
+alter table ingresos_material drop constraint if exists ingresos_material_estado_pago_check;
+alter table ingresos_material add constraint ingresos_material_estado_pago_check
+    check (estado_pago in ('POR_PAGAR','PAGADO'));
+
+alter table ingresos_material drop constraint if exists ingresos_material_metodo_pago_check;
+alter table ingresos_material add constraint ingresos_material_metodo_pago_check
+    check (metodo_pago in ('EFECTIVO','TRANSFERENCIA'));
+
+set search_path to public;

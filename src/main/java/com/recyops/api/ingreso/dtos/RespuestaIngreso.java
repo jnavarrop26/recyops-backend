@@ -19,6 +19,9 @@ public record RespuestaIngreso(
         BigDecimal pesoNetoTotal,
         BigDecimal total,
         String estado,
+        String estadoPago,
+        String metodoPago,
+        Boolean paso,
         List<RespuestaDetalleIngreso> detalles) {
 
     /** Version liviana para listados: sin los materiales del detalle. */
@@ -47,6 +50,9 @@ public record RespuestaIngreso(
                 ingreso.getPesoNetoTotal(),
                 ingreso.getTotal(),
                 ingreso.getEstado().name(),
+                ingreso.getEstadoPago().name(),
+                ingreso.getMetodoPago() != null ? ingreso.getMetodoPago().name() : null,
+                ingreso.getPaso(),
                 detalles);
     }
 }

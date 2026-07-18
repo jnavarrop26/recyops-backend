@@ -7,6 +7,7 @@ import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
 import com.recyops.api.entrega.dtos.RespuestaEntrega;
+import com.recyops.api.entrega.dtos.RespuestaRecibo;
 import com.recyops.api.entrega.entity.Entrega;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import com.recyops.api.entrega.excepciones.EntregaNoEncontradaException;
@@ -36,15 +37,17 @@ public class EntregaServiceImpl implements EntregaService {
     private final BodegaRepository bodegaRepository;
     private final MaterialRepository materialRepository;
     private final InventarioService inventarioService;
+    private final GeneradorReciboPdf generadorReciboPdf;
 
     public EntregaServiceImpl(EntregaRepository entregaRepository, ProveedorRepository proveedorRepository,
             BodegaRepository bodegaRepository, MaterialRepository materialRepository,
-            InventarioService inventarioService) {
+            InventarioService inventarioService, GeneradorReciboPdf generadorReciboPdf) {
         this.entregaRepository = entregaRepository;
         this.proveedorRepository = proveedorRepository;
         this.bodegaRepository = bodegaRepository;
         this.materialRepository = materialRepository;
         this.inventarioService = inventarioService;
+        this.generadorReciboPdf = generadorReciboPdf;
     }
 
     @Override
@@ -122,6 +125,15 @@ public class EntregaServiceImpl implements EntregaService {
                 entrega.getTipoMaterial().getId(), entrega.getPesoKg(),
                 "Eliminacion " + entrega.getCodigo());
         entregaRepository.delete(entrega);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RespuestaRecibo generarRecibo(UUID id) {
+        // Con fetch join: el recibo usa proveedor, bodega y material en una sola consulta.
+        Entrega entrega = entregaRepository.buscarConRelaciones(id)
+                .orElseThrow(() -> new EntregaNoEncontradaException(id));
+        return new RespuestaRecibo(entrega.getCodigo(), generadorReciboPdf.generar(entrega));
     }
 
     private Entrega buscarEntidad(UUID id) {

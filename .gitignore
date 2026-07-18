@@ -51,6 +51,13 @@ graphify-out/
 
 ### CLAUDE ###
 CLAUDE.md
+.claude/
+
+### Bruno ###
+bruno/
+
+
+
 
 ### docs ###
 docs/

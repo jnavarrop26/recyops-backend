@@ -1,6 +1,8 @@
 package com.recyops.api.ingreso.entity;
 
 import com.recyops.api.ingreso.enums.EstadoIngreso;
+import com.recyops.api.ingreso.enums.EstadoPago;
+import com.recyops.api.ingreso.enums.MetodoPago;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -77,6 +79,21 @@ public class IngresoMaterial {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoIngreso estado = EstadoIngreso.POR_CLASIFICAR;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", nullable = false)
+    private EstadoPago estadoPago = EstadoPago.POR_PAGAR;
+
+    /** Solo se registra al marcar el ingreso como pagado. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metodo_pago")
+    private MetodoPago metodoPago;
+
+    /** Marca operativa editable desde el historial: si el lote ya paso o no. */
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean paso = Boolean.FALSE;
 
     @Builder.Default
     @OneToMany(mappedBy = "ingreso", cascade = CascadeType.ALL, orphanRemoval = true)

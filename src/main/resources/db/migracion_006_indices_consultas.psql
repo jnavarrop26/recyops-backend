@@ -1,0 +1,21 @@
+-- ============================================================================
+-- Migracion 006: indices para las consultas de historial.
+--   - ingresos_material(fecha desc): buscarPorRango y resumenDiario del dashboard.
+--   - entregas(proveedor_id, fecha_recepcion desc): historial por proveedor sin
+--     sort; reemplaza al indice de una sola columna idx_entregas_proveedor.
+-- Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
+-- ============================================================================
+
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
+
+create index if not exists idx_ingresos_fecha on ingresos_material (fecha desc);
+
+drop index if exists idx_entregas_proveedor;
+create index if not exists idx_entregas_proveedor_fecha on entregas (proveedor_id, fecha_recepcion desc);
+
+set search_path to public;

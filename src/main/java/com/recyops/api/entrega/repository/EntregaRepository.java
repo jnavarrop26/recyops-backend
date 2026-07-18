@@ -4,6 +4,7 @@ import com.recyops.api.entrega.entity.Entrega;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,16 @@ public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
             Pageable paginacion);
 
     List<Entrega> findByProveedorIdOrderByFechaRecepcionDesc(UUID proveedorId);
+
+    /** Entrega con proveedor, bodega y material en una sola consulta (recibo PDF). */
+    @Query("""
+            select e from Entrega e
+            join fetch e.proveedor
+            join fetch e.bodega
+            join fetch e.tipoMaterial
+            where e.id = :id
+            """)
+    Optional<Entrega> buscarConRelaciones(@Param("id") UUID id);
 
     long countByFechaRecepcionBetween(LocalDateTime desde, LocalDateTime hasta);
 

@@ -2,17 +2,20 @@
 -- RecyOps - DDL del esquema de UNA empresa
 --
 -- Como usarlo (por cada empresa nueva):
---   1. Reemplaza empresa_demo por el nombre del esquema de la empresa
---      (minusculas, sin espacios; ej: empresa_ecoverde).
---   2. Ejecuta el script completo en el SQL Editor de Supabase.
---   3. Registra la empresa en public.empresas con ese schema_name.
+--   1. psql -v esquema=empresa_ecoverde -f esquema_empresa.psql
+--      (minusculas, sin espacios; el modulo super admin tambien lo ejecuta
+--      automaticamente al provisionar via POST /api/plataforma/empresas).
+--   2. Registra la empresa en public.empresas con ese schema_name.
+--
+-- OJO: este archivo lo consume tambien Java por JDBC (PlataformaServiceImpl
+-- reemplaza :"esquema"), asi que NO debe llevar metacomandos psql (\set, \if).
 --
 -- Cada empresa obtiene una copia identica de estas tablas dentro de su propio
 -- esquema: los datos quedan fisicamente separados sin multitenancy por filas.
 -- ============================================================================
 
-create schema if not exists empresa_demo;
-set search_path to empresa_demo;
+create schema if not exists :"esquema";
+set search_path to :"esquema";
 
 -- ------------------------------------------------------------ modulo usuario
 create table roles (
@@ -156,7 +159,7 @@ create table entregas (
     usuario_registro_nombre varchar(200) not null
 );
 
-create index idx_entregas_proveedor on entregas (proveedor_id);
+create index idx_entregas_proveedor_fecha on entregas (proveedor_id, fecha_recepcion desc);
 create index idx_entregas_bodega    on entregas (bodega_id);
 create index idx_entregas_fecha     on entregas (fecha_recepcion desc);
 
@@ -174,12 +177,24 @@ create table ingresos_material (
     peso_neto_total numeric(14,2) not null,
     total           numeric(16,2) not null,
     estado          varchar(20) not null default 'POR_CLASIFICAR'
-                    check (estado in ('POR_CLASIFICAR','EN_BODEGA','DESPACHADO','RECHAZADO'))
+                    check (estado in ('POR_CLASIFICAR','EN_BODEGA','DESPACHADO','RECHAZADO')),
+    estado_pago     varchar(20) not null default 'POR_PAGAR'
+                    check (estado_pago in ('POR_PAGAR','PAGADO')),
+    -- Solo se registra al marcar el ingreso como pagado
+    metodo_pago     varchar(20) check (metodo_pago in ('EFECTIVO','TRANSFERENCIA')),
+    -- Marca operativa editable desde el historial: si el lote ya paso o no
+    paso            boolean not null default false
 );
+
+-- Esquemas creados antes de la columna "paso": ejecutar una vez por esquema
+-- alter table :"esquema".ingresos_material add column paso boolean not null default false;
 
 create table detalles_ingreso (
     id            uuid primary key default gen_random_uuid(),
     ingreso_id    bigint not null references ingresos_material (id) on delete cascade,
+    -- Material del catalogo; nullable por los ingresos historicos sin FK
+    material_id   uuid references materiales (id),
+    -- Nombre denormalizado del material, para los recibos historicos
     categoria     varchar(100) not null,
     peso_bruto    numeric(14,2) not null,
     tara          numeric(14,2) not null default 0,
@@ -189,7 +204,9 @@ create table detalles_ingreso (
     observaciones varchar(500)
 );
 
-create index idx_detalles_ingreso on detalles_ingreso (ingreso_id);
+create index idx_detalles_ingreso  on detalles_ingreso (ingreso_id);
+create index idx_detalles_material on detalles_ingreso (material_id);
+create index idx_ingresos_fecha    on ingresos_material (fecha desc);
 
 -- ------------------------------------------------------------- modulo tarea
 create table tareas (

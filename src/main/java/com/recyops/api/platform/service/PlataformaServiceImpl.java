@@ -134,9 +134,11 @@ public class PlataformaServiceImpl implements PlataformaService {
     }
 
     private String cargarDdl(String esquema) throws Exception {
-        var resource = new ClassPathResource("db/esquema_empresa.sql");
+        // El DDL usa la variable psql :"esquema" para poder ejecutarse tambien
+        // desde la CLI; aqui se sustituye por el nombre real antes de ir a JDBC.
+        var resource = new ClassPathResource("db/esquema_empresa.psql");
         return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8)
-                .replace("{{esquema}}", esquema);
+                .replace(":\"esquema\"", esquema);
     }
 
     private void guardarPerfilAdmin(UUID supabaseId, String nombreCompleto, String username,

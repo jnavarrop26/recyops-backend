@@ -3,12 +3,16 @@ package com.recyops.api.entrega.controller;
 import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
 import com.recyops.api.entrega.dtos.RespuestaEntrega;
+import com.recyops.api.entrega.dtos.RespuestaRecibo;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import com.recyops.api.entrega.interfaces.EntregaService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,12 +69,14 @@ public class EntregaController {
         entregaService.eliminar(id);
     }
 
-    /**
-     * Recibo PDF de la entrega. Pendiente de implementar: requiere agregar una
-     * libreria PDF (por ejemplo openpdf) y armar el documento.
-     */
+    /** Recibo PDF de la entrega, para abrir o imprimir desde el cliente. */
     @GetMapping("/{id}/recibo")
-    public ResponseEntity<Void> recibo(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<byte[]> recibo(@PathVariable UUID id) {
+        RespuestaRecibo recibo = entregaService.generarRecibo(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline().filename(recibo.nombreArchivo()).build().toString())
+                .body(recibo.contenido());
     }
 }

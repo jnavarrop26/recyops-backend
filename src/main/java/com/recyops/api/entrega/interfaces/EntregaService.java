@@ -3,6 +3,7 @@ package com.recyops.api.entrega.interfaces;
 import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
 import com.recyops.api.entrega.dtos.RespuestaEntrega;
+import com.recyops.api.entrega.dtos.RespuestaRecibo;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -19,4 +20,6 @@ public interface EntregaService {
     RespuestaEntrega cambiarEstado(UUID id, EstadoEntrega valor);
 
     void eliminar(UUID id);
+
+    RespuestaRecibo generarRecibo(UUID id);
 }

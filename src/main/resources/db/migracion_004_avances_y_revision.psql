@@ -1,9 +1,14 @@
 -- ============================================================================
 -- Migracion 004: bitacora de avances por tarea + estado REVISION en el flujo.
 -- Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
 -- ============================================================================
 
-set search_path to empresa_demo;
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
 
 -- Nuevo estado REVISION en el flujo de tareas
 alter table tareas drop constraint if exists tareas_estado_check;
