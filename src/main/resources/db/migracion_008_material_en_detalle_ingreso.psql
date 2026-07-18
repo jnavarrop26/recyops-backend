@@ -1,0 +1,19 @@
+-- ============================================================================
+-- Migracion 008: FK material_id en detalles_ingreso.
+-- Conecta la bascula (ingresos) con el catalogo real de materiales; la columna
+-- categoria se conserva como texto denormalizado para los recibos historicos.
+-- Idempotente. Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
+-- ============================================================================
+
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
+
+alter table detalles_ingreso add column if not exists material_id uuid references materiales (id);
+
+create index if not exists idx_detalles_material on detalles_ingreso (material_id);
+
+set search_path to public;

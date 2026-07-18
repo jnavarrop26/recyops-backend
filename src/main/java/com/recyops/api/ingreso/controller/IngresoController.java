@@ -1,7 +1,9 @@
 package com.recyops.api.ingreso.controller;
 
 import com.recyops.api.ingreso.dtos.CuerpoIngreso;
+import com.recyops.api.ingreso.dtos.CuerpoPago;
 import com.recyops.api.ingreso.dtos.RespuestaIngreso;
+import com.recyops.api.ingreso.enums.EstadoIngreso;
 import com.recyops.api.ingreso.interfaces.IngresoService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -10,6 +12,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,5 +56,23 @@ public class IngresoController {
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaIngreso registrar(@Valid @RequestBody CuerpoIngreso cuerpo) {
         return ingresoService.registrar(cuerpo);
+    }
+
+    @PatchMapping("/{id}/pago")
+    @PreAuthorize("hasRole('ADMIN')")
+    public RespuestaIngreso registrarPago(@PathVariable Long id, @Valid @RequestBody CuerpoPago cuerpo) {
+        return ingresoService.registrarPago(id, cuerpo);
+    }
+
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    public RespuestaIngreso cambiarEstado(@PathVariable Long id, @RequestParam EstadoIngreso valor) {
+        return ingresoService.cambiarEstado(id, valor);
+    }
+
+    @PatchMapping("/{id}/paso")
+    @PreAuthorize("hasRole('ADMIN')")
+    public RespuestaIngreso cambiarPaso(@PathVariable Long id, @RequestParam boolean valor) {
+        return ingresoService.cambiarPaso(id, valor);
     }
 }

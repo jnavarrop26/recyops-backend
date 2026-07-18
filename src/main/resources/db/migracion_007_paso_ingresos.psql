@@ -1,0 +1,17 @@
+-- ============================================================================
+-- Migracion 007: marca operativa "paso" en ingresos de material.
+-- La entidad IngresoMaterial ya mapea la columna; sin ella, todo SELECT de
+-- ingresos falla con 42703 (column does not exist).
+-- Idempotente. Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
+-- ============================================================================
+
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
+
+alter table ingresos_material add column if not exists paso boolean not null default false;
+
+set search_path to public;

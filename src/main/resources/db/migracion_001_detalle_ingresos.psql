@@ -1,10 +1,15 @@
 -- ============================================================================
 -- Migracion 001: detalle de materiales por ingreso + UUID del recibo
 -- Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
 -- (Para esquemas nuevos no hace falta: esquema_empresa.sql ya lo incluye.)
 -- ============================================================================
 
-set search_path to empresa_demo;
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
 
 alter table ingresos_material
     add column if not exists uuid uuid not null unique default gen_random_uuid();

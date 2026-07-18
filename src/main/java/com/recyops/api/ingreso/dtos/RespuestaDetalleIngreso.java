@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record RespuestaDetalleIngreso(
         UUID id,
+        UUID materialId,
         String categoria,
         BigDecimal pesoBruto,
         BigDecimal tara,
@@ -17,6 +18,7 @@ public record RespuestaDetalleIngreso(
     public static RespuestaDetalleIngreso desde(DetalleIngreso detalle) {
         return new RespuestaDetalleIngreso(
                 detalle.getId(),
+                detalle.getMaterial() != null ? detalle.getMaterial().getId() : null,
                 detalle.getCategoria(),
                 detalle.getPesoBruto(),
                 detalle.getTara(),

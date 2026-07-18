@@ -119,6 +119,14 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
+		<dependency>
+			<!-- Generacion de PDFs (recibos de entrega). Licencia Apache 2.0,
+			     sin dependencias transitivas pesadas. La version no la gestiona
+			     el BOM de Spring Boot, se fija aqui. -->
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.5</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

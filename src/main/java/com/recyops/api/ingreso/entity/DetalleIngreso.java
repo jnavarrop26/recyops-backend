@@ -1,5 +1,6 @@
 package com.recyops.api.ingreso.entity;
 
+import com.recyops.api.material.entity.Material;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,6 +36,15 @@ public class DetalleIngreso {
     @JoinColumn(name = "ingreso_id")
     private IngresoMaterial ingreso;
 
+    /**
+     * Material del catalogo de la empresa. Nullable: los ingresos historicos
+     * (previos a la FK) solo tienen la categoria como texto.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "material_id")
+    private Material material;
+
+    /** Nombre denormalizado del material, para los recibos historicos. */
     @Column(nullable = false)
     private String categoria;
 

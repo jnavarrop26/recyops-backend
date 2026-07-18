@@ -1,14 +1,21 @@
 package com.recyops.api.ingreso.service;
 
+import com.recyops.api.comun.excepciones.ReglaNegocioException;
 import com.recyops.api.ingreso.dtos.CuerpoDetalleIngreso;
 import com.recyops.api.ingreso.dtos.CuerpoIngreso;
+import com.recyops.api.ingreso.dtos.CuerpoPago;
 import com.recyops.api.ingreso.dtos.RespuestaIngreso;
+import com.recyops.api.ingreso.enums.EstadoIngreso;
+import com.recyops.api.ingreso.enums.EstadoPago;
 import com.recyops.api.ingreso.entity.DetalleIngreso;
 import com.recyops.api.ingreso.entity.IngresoMaterial;
 import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.ingreso.excepciones.IngresoNoEncontradoException;
 import com.recyops.api.ingreso.interfaces.IngresoService;
 import com.recyops.api.ingreso.repository.IngresoMaterialRepository;
+import com.recyops.api.material.entity.Material;
+import com.recyops.api.material.excepciones.MaterialNoEncontradoException;
+import com.recyops.api.material.repository.MaterialRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,9 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class IngresoServiceImpl implements IngresoService {
 
     private final IngresoMaterialRepository ingresoRepository;
+    private final MaterialRepository materialRepository;
 
-    public IngresoServiceImpl(IngresoMaterialRepository ingresoRepository) {
+    public IngresoServiceImpl(IngresoMaterialRepository ingresoRepository,
+            MaterialRepository materialRepository) {
         this.ingresoRepository = ingresoRepository;
+        this.materialRepository = materialRepository;
     }
 
     @Override
@@ -84,17 +94,73 @@ public class IngresoServiceImpl implements IngresoService {
         return RespuestaIngreso.conDetalles(ingresoRepository.save(ingreso));
     }
 
-    private DetalleIngreso construirDetalle(IngresoMaterial ingreso, CuerpoDetalleIngreso material) {
-        BigDecimal pesoNeto = material.pesoBruto().subtract(material.tara()).max(BigDecimal.ZERO);
+    @Override
+    @LogTransaccional(operacion = "INGRESO_PAGADO")
+    public RespuestaIngreso registrarPago(Long id, CuerpoPago cuerpo) {
+        IngresoMaterial ingreso = buscarEntidad(id);
+        // Si ya esta pagado, solo se permite corregir el metodo por uno distinto.
+        if (ingreso.getEstadoPago() == EstadoPago.PAGADO
+                && ingreso.getMetodoPago() == cuerpo.metodoPago()) {
+            throw new ReglaNegocioException(
+                    "El ingreso " + id + " ya fue pagado con " + ingreso.getMetodoPago());
+        }
+        ingreso.setEstadoPago(EstadoPago.PAGADO);
+        ingreso.setMetodoPago(cuerpo.metodoPago());
+        return RespuestaIngreso.conDetalles(ingreso);
+    }
+
+    @Override
+    @LogTransaccional(operacion = "INGRESO_ESTADO_CAMBIADO")
+    public RespuestaIngreso cambiarEstado(Long id, EstadoIngreso valor) {
+        IngresoMaterial ingreso = buscarEntidad(id);
+        ingreso.setEstado(valor);
+        return RespuestaIngreso.conDetalles(ingreso);
+    }
+
+    @Override
+    @LogTransaccional(operacion = "INGRESO_PASO_CAMBIADO")
+    public RespuestaIngreso cambiarPaso(Long id, boolean valor) {
+        IngresoMaterial ingreso = buscarEntidad(id);
+        ingreso.setPaso(valor);
+        return RespuestaIngreso.conDetalles(ingreso);
+    }
+
+    private IngresoMaterial buscarEntidad(Long id) {
+        return ingresoRepository.findById(id)
+                .orElseThrow(() -> new IngresoNoEncontradoException(id));
+    }
+
+    private DetalleIngreso construirDetalle(IngresoMaterial ingreso, CuerpoDetalleIngreso cuerpo) {
+        // Con materialId, la categoria y el precio salen del catalogo de la empresa;
+        // sin el, se conserva el flujo viejo de texto libre y precio digitado.
+        Material material = cuerpo.materialId() != null
+                ? materialRepository.findById(cuerpo.materialId())
+                        .orElseThrow(() -> new MaterialNoEncontradoException(cuerpo.materialId()))
+                : null;
+
+        String categoria = material != null ? material.getNombre() : cuerpo.categoria();
+        if (categoria == null || categoria.isBlank()) {
+            throw new ReglaNegocioException("Cada material del ingreso requiere materialId o categoria");
+        }
+        BigDecimal precioKilo = cuerpo.precioKilo() != null
+                ? cuerpo.precioKilo()
+                : material != null ? material.getPrecioBase() : null;
+        if (precioKilo == null) {
+            throw new ReglaNegocioException(
+                    "El material '" + categoria + "' requiere precio por kilo (explicito o del catalogo)");
+        }
+
+        BigDecimal pesoNeto = cuerpo.pesoBruto().subtract(cuerpo.tara()).max(BigDecimal.ZERO);
         return DetalleIngreso.builder()
                 .ingreso(ingreso)
-                .categoria(material.categoria())
-                .pesoBruto(material.pesoBruto())
-                .tara(material.tara())
+                .material(material)
+                .categoria(categoria)
+                .pesoBruto(cuerpo.pesoBruto())
+                .tara(cuerpo.tara())
                 .pesoNeto(pesoNeto)
-                .precioKilo(material.precioKilo())
-                .subtotal(pesoNeto.multiply(material.precioKilo()))
-                .observaciones(material.observaciones())
+                .precioKilo(precioKilo)
+                .subtotal(pesoNeto.multiply(precioKilo))
+                .observaciones(cuerpo.observaciones())
                 .build();
     }
 }
