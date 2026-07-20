@@ -96,7 +96,7 @@
 			     La version no la gestiona el BOM de Spring Boot, se fija aqui. -->
 			<groupId>com.lmax</groupId>
 			<artifactId>disruptor</artifactId>
-			<version>3.4.4</version>
+			<version>4.0.0</version>
 		</dependency>
 		<dependency>
 			<!-- Habilita los aspectos (@Aspect) del log transaccional -->
