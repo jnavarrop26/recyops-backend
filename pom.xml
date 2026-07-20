@@ -125,7 +125,7 @@
 			     el BOM de Spring Boot, se fija aqui. -->
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>3.0.5</version>
+			<version>3.0.8</version>
 		</dependency>
 
 		<dependency>
