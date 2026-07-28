@@ -53,7 +53,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional(readOnly = true)
     public List<RespuestaTrabajador> listarTrabajadores() {
-        return usuarioRepository.findAll().stream().map(RespuestaTrabajador::desde).toList();
+        return usuarioRepository.listarConRolYBodega().stream().map(RespuestaTrabajador::desde).toList();
     }
 
     @Override

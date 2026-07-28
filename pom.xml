@@ -139,6 +139,20 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- Migraciones de esquema. La autoconfiguracion de Spring Boot queda
+		     apagada (spring.flyway.enabled=false): solo sabe migrar UN esquema y
+		     aqui cada empresa tiene el suyo, asi que MigradorEsquemas corre Flyway
+		     una vez por tenant. flyway-database-postgresql trae el soporte del
+		     motor, obligatorio desde Flyway 10. -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

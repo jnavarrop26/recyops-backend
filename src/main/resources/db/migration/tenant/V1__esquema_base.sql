@@ -1,21 +1,18 @@
 -- ============================================================================
--- RecyOps - DDL del esquema de UNA empresa
+-- V1 - Esquema base de UNA empresa (linea base del historial Flyway)
 --
--- Como usarlo:
---   psql -f esquema_empresa_demo.psql                  -> crea empresa_demo
---   psql -v esquema=empresa_x -f esquema_empresa_demo.psql -> crea otro esquema
---   Luego registra la empresa en public.empresas con ese schema_name.
+-- Flyway lo aplica dentro del esquema de cada empresa: crea el esquema si falta
+-- y fija defaultSchema, por eso aqui NO hay 'create schema', ni 'search_path',
+-- ni variables psql. Los nombres van sin calificar a proposito.
+--
+-- Esta V1 refleja el estado acumulado de las antiguas migracion_001..009, que
+-- quedan como historico en db/historico/. Los esquemas que ya existian se
+-- baselinean en V1 en vez de re-ejecutarla.
 --
 -- Cada empresa obtiene una copia identica de estas tablas dentro de su propio
 -- esquema: los datos quedan fisicamente separados sin multitenancy por filas.
 -- ============================================================================
 
-\if :{?esquema}
-\else
-\set esquema empresa_demo
-\endif
-create schema if not exists :"esquema";
-set search_path to :"esquema";
 
 -- ------------------------------------------------------------ modulo usuario
 create table roles (
@@ -52,6 +49,9 @@ create table usuarios (
     bodega_id       uuid references bodegas (id),
     fecha_creacion  timestamp not null default now()
 );
+
+create index idx_usuarios_rol    on usuarios (rol_id);
+create index idx_usuarios_bodega on usuarios (bodega_id);
 
 -- ----------------------------------------------------------- modulo material
 create table opciones_catalogo (
@@ -109,6 +109,11 @@ create table materiales (
     fecha_creacion  timestamp not null default now()
 );
 
+create index idx_materiales_categoria    on materiales (categoria_id);
+create index idx_materiales_subcategoria on materiales (subcategoria_id);
+create index idx_materiales_resina       on materiales (resina_id);
+create index idx_materiales_color        on materiales (color_id);
+
 -- ---------------------------------------------------------- modulo proveedor
 create table proveedores (
     id             uuid primary key default gen_random_uuid(),
@@ -142,6 +147,9 @@ create table convenios (
     fecha_creacion timestamp not null default now()
 );
 
+create index idx_convenios_proveedor on convenios (proveedor_id);
+create index idx_convenios_bodega    on convenios (bodega_id);
+
 -- ------------------------------------------------------------ modulo entrega
 create sequence entregas_codigo_seq;
 
@@ -162,6 +170,7 @@ create table entregas (
 create index idx_entregas_proveedor_fecha on entregas (proveedor_id, fecha_recepcion desc);
 create index idx_entregas_bodega    on entregas (bodega_id);
 create index idx_entregas_fecha     on entregas (fecha_recepcion desc);
+create index idx_entregas_material  on entregas (tipo_material_id);
 
 -- -------------------------------------------------- modulo ingreso de material
 create table ingresos_material (
@@ -222,6 +231,7 @@ create table tareas (
 );
 
 create index idx_tareas_asignado on tareas (asignado_id);
+create index idx_tareas_bodega   on tareas (bodega_id);
 
 -- Bitacora de avances de cada tarea (evidencia de trabajo, inmutable)
 create table avances_tarea (
@@ -247,6 +257,8 @@ create table lineas_inventario (
     unique (bodega_id, tipo_material_id)
 );
 
+create index idx_lineas_material on lineas_inventario (tipo_material_id);
+
 create table movimientos_inventario (
     id                uuid primary key default gen_random_uuid(),
     linea_id          uuid not null references lineas_inventario (id),
@@ -261,6 +273,3 @@ create table movimientos_inventario (
 );
 
 create index idx_movimientos_linea on movimientos_inventario (linea_id, fecha_registro desc);
-
--- Restaura el search_path de la sesion
-set search_path to public;

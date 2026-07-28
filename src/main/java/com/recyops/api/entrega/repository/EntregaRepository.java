@@ -14,14 +14,30 @@ import org.springframework.data.repository.query.Param;
 
 public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
 
-    @Query("""
+    /**
+     * Trae proveedor, bodega y material en la misma consulta: {@code RespuestaEntrega}
+     * lee el nombre de los tres, y sin el fetch cada fila de la pagina dispararia
+     * tres selects extra (N+1).
+     */
+    @Query(value = """
             select e from Entrega e
+            join fetch e.proveedor
+            join fetch e.bodega
+            join fetch e.tipoMaterial
             where (:bodegaId is null or e.bodega.id = :bodegaId)
               and (:proveedorId is null or e.proveedor.id = :proveedorId)
               and (:estado is null or e.estado = :estado)
               and (cast(:fechaDesde as timestamp) is null or e.fechaRecepcion >= :fechaDesde)
               and (cast(:fechaHasta as timestamp) is null or e.fechaRecepcion <= :fechaHasta)
             order by e.fechaRecepcion desc
+            """,
+            countQuery = """
+            select count(e) from Entrega e
+            where (:bodegaId is null or e.bodega.id = :bodegaId)
+              and (:proveedorId is null or e.proveedor.id = :proveedorId)
+              and (:estado is null or e.estado = :estado)
+              and (cast(:fechaDesde as timestamp) is null or e.fechaRecepcion >= :fechaDesde)
+              and (cast(:fechaHasta as timestamp) is null or e.fechaRecepcion <= :fechaHasta)
             """)
     Page<Entrega> buscar(
             @Param("bodegaId") UUID bodegaId,
@@ -31,7 +47,14 @@ public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
             @Param("fechaHasta") LocalDateTime fechaHasta,
             Pageable paginacion);
 
-    List<Entrega> findByProveedorIdOrderByFechaRecepcionDesc(UUID proveedorId);
+    /** Con el material resuelto: {@code RespuestaEntregaProveedor} lee su nombre. */
+    @Query("""
+            select e from Entrega e
+            join fetch e.tipoMaterial
+            where e.proveedor.id = :proveedorId
+            order by e.fechaRecepcion desc
+            """)
+    List<Entrega> findByProveedorIdOrderByFechaRecepcionDesc(@Param("proveedorId") UUID proveedorId);
 
     /** Entrega con proveedor, bodega y material en una sola consulta (recibo PDF). */
     @Query("""
