@@ -15,12 +15,26 @@ public interface LineaInventarioRepository extends JpaRepository<LineaInventario
 
     Optional<LineaInventario> findByBodegaIdAndTipoMaterialId(UUID bodegaId, UUID tipoMaterialId);
 
-    @Query("""
+    /**
+     * Bodega, material y la categoria del material en una sola consulta:
+     * {@code RespuestaLineaInventario} baja hasta {@code tipoMaterial.categoria.nombre},
+     * asi que sin el fetch cada linea de la pagina costaba tres selects extra.
+     */
+    @Query(value = """
             select l from LineaInventario l
+            join fetch l.bodega
+            join fetch l.tipoMaterial m
+            join fetch m.categoria
             where l.bodega.id = :bodegaId
               and (:tipoMaterialId is null or l.tipoMaterial.id = :tipoMaterialId)
               and (:bajoMinimo is null or :bajoMinimo = false or l.stockActual < l.stockMinimo)
-            order by l.tipoMaterial.nombre
+            order by m.nombre
+            """,
+            countQuery = """
+            select count(l) from LineaInventario l
+            where l.bodega.id = :bodegaId
+              and (:tipoMaterialId is null or l.tipoMaterial.id = :tipoMaterialId)
+              and (:bajoMinimo is null or :bajoMinimo = false or l.stockActual < l.stockMinimo)
             """)
     Page<LineaInventario> buscar(
             @Param("bodegaId") UUID bodegaId,

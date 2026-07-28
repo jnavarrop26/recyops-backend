@@ -1,0 +1,45 @@
+-- ============================================================================
+-- Migracion 009: indices sobre las llaves foraneas que quedaron sin cubrir.
+-- Postgres NO indexa una FK automaticamente (solo las PK y los unique), asi que
+-- estas once columnas se recorrian a fuerza de seq scan. Importan por dos vias:
+--   - los listados ahora resuelven sus relaciones con join fetch (materiales ->
+--     categoria/subcategoria/resina/color, entregas -> tipo_material,
+--     convenios -> proveedor/bodega, tareas -> bodega, usuarios -> rol/bodega);
+--   - al borrar o actualizar una fila padre, Postgres valida la FK escaneando
+--     la tabla hija entera si no hay indice que la respalde.
+-- lineas_inventario.tipo_material_id ya aparece en el unique (bodega_id,
+-- tipo_material_id), pero como segunda columna: no sirve para buscar por
+-- material solo, que es justo lo que hace la validacion de la FK.
+--
+-- Con los volumenes actuales (decenas de filas) el planner seguira prefiriendo
+-- seq scan; esto es para que la plantilla nazca correcta y no haya que migrar
+-- N esquemas de empresa mas adelante.
+--
+-- Idempotente. Ejecutar UNA vez por cada esquema de empresa ya creado.
+-- Uso: psql -v esquema=empresa_x -f <archivo>.psql   (sin -v aplica a empresa_demo)
+-- ============================================================================
+
+\if :{?esquema}
+\else
+\set esquema empresa_demo
+\endif
+set search_path to :"esquema";
+
+create index if not exists idx_materiales_categoria    on materiales (categoria_id);
+create index if not exists idx_materiales_subcategoria on materiales (subcategoria_id);
+create index if not exists idx_materiales_resina       on materiales (resina_id);
+create index if not exists idx_materiales_color        on materiales (color_id);
+
+create index if not exists idx_entregas_material on entregas (tipo_material_id);
+
+create index if not exists idx_convenios_proveedor on convenios (proveedor_id);
+create index if not exists idx_convenios_bodega    on convenios (bodega_id);
+
+create index if not exists idx_tareas_bodega on tareas (bodega_id);
+
+create index if not exists idx_usuarios_rol    on usuarios (rol_id);
+create index if not exists idx_usuarios_bodega on usuarios (bodega_id);
+
+create index if not exists idx_lineas_material on lineas_inventario (tipo_material_id);
+
+set search_path to public;

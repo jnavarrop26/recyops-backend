@@ -5,7 +5,7 @@ esquema de Postgres** (aislamiento por esquema, *no* multitenancy por filas):
 
 ```
 Proyecto Supabase (Postgres)
-├── public                      ← solo el directorio de empresas (registro_empresas.sql)
+├── public                      ← solo el directorio de empresas (migration/plataforma)
 │   └── empresas                (nombre, nit, schema_name, activo)
 ├── empresa_ecoverde            ← esquema COMPLETO de la empresa EcoVerde
 │   ├── roles, usuarios
@@ -42,18 +42,24 @@ en `search_path`, así que un claim manipulado no puede inyectar SQL.
 
 ## Alta de una empresa nueva (paso a paso)
 
-1. **Crear el esquema con sus tablas**: abre
-   [esquema_empresa.sql](../src/main/resources/db/esquema_empresa.sql),
-   reemplaza `{{esquema}}` por el nombre (ej. `empresa_ecoverde`) y ejecútalo
-   en el SQL Editor de Supabase. El script crea las tablas, secuencias,
-   los roles `ADMIN`/`OPERARIO` y las semillas del catálogo de materiales.
+> Desde 2026-07-28 esto lo hace Flyway. La vía recomendada es
+> `POST /api/platform/empresas`, que crea el esquema, le aplica todas las
+> migraciones y lo registra en el directorio en una sola operación.
+> Ver [ADR 001](adr/001-flyway-migraciones-multi-tenant.md).
+
+1. **Crear el esquema con sus tablas**: lo hace Flyway con
+   [V1\_\_esquema_base.sql](../src/main/resources/db/migration/tenant/V1__esquema_base.sql),
+   que crea las tablas, secuencias, índices, los roles `ADMIN`/`OPERARIO` y las
+   semillas del catálogo de materiales. No se ejecuta a mano: lo dispara el
+   provisionamiento o el arranque de la aplicación.
 2. **Registrarla en el directorio**:
    ```sql
    insert into public.empresas (nombre, nit, schema_name)
    values ('EcoVerde SAS', '900123456-7', 'empresa_ecoverde');
    ```
-   (La tabla se crea una única vez con
-   [registro_empresas.sql](../src/main/resources/db/registro_empresas.sql).)
+   (La tabla la crea
+   [V1\_\_registro_empresas.sql](../src/main/resources/db/migration/plataforma/V1__registro_empresas.sql)
+   sobre `public`.)
 3. **Crear el usuario administrador en Supabase Auth**
    (Dashboard > Authentication > Users > *Add user*, o con la Admin API) y
    asignarle los claims. Con la Admin API:

@@ -10,8 +10,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface TareaRepository extends JpaRepository<Tarea, UUID> {
 
+    /** Asignado y bodega resueltos: {@code RespuestaTarea} lee el nombre de ambos. */
     @Query("""
             select t from Tarea t
+            join fetch t.asignado
+            left join fetch t.bodega
             where (:estado is null or t.estado = :estado)
               and (:asignadoId is null or t.asignado.id = :asignadoId)
               and (:bodegaId is null or t.bodega.id = :bodegaId)
@@ -22,5 +25,13 @@ public interface TareaRepository extends JpaRepository<Tarea, UUID> {
             @Param("asignadoId") UUID asignadoId,
             @Param("bodegaId") UUID bodegaId);
 
-    List<Tarea> findByAsignadoIdOrderByFechaCreacionDesc(UUID asignadoId);
+    /** Mismo fetch que {@link #buscar}: alimenta "mis tareas" del operario. */
+    @Query("""
+            select t from Tarea t
+            join fetch t.asignado
+            left join fetch t.bodega
+            where t.asignado.id = :asignadoId
+            order by t.fechaCreacion desc
+            """)
+    List<Tarea> findByAsignadoIdOrderByFechaCreacionDesc(@Param("asignadoId") UUID asignadoId);
 }

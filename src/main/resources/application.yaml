@@ -16,8 +16,15 @@ spring:
     hikari:
       maximum-pool-size: 10
 
+  flyway:
+    # Apagada a proposito: la autoconfiguracion de Spring Boot migra UN solo
+    # esquema, y aqui cada empresa tiene el suyo. MigradorEsquemas corre Flyway
+    # una vez por tenant (historial propio dentro de cada esquema) mas una vez
+    # sobre public para el directorio de empresas.
+    enabled: false
+
   jpa:
-    # El DDL se aplica manualmente por esquema con src/main/resources/db/esquema_empresa.sql
+    # El DDL lo aplica Flyway por esquema (db/migration/tenant), nunca Hibernate
     hibernate:
       ddl-auto: none
     open-in-view: false
@@ -55,6 +62,10 @@ recyops:
     # ahi X-Forwarded-For lo fija el proxy. En acceso directo el cliente lo falsifica,
     # asi que en local/dev se usa la IP real del socket (infalsificable).
     confiar-en-proxy: ${RECYOPS_CONFIAR_PROXY:false}
+  migraciones:
+    # Corre Flyway al arrancar sobre public y sobre cada esquema de empresa.
+    # Apagar donde las migraciones las aplique un job de despliegue aparte.
+    al-arrancar: ${RECYOPS_MIGRAR_AL_ARRANCAR:true}
   # En produccion: true -> se rechazan JWT sin claim empresa_schema en lugar de
   # caer al esquema por defecto (evita accesos accidentales entre empresas).
   esquema-estricto: ${RECYOPS_ESQUEMA_ESTRICTO:true}

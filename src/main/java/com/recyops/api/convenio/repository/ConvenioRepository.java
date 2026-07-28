@@ -12,12 +12,25 @@ import org.springframework.data.repository.query.Param;
 
 public interface ConvenioRepository extends JpaRepository<Convenio, UUID> {
 
-    @Query("""
+    /**
+     * Proveedor y bodega vienen en la misma consulta ({@code RespuestaConvenio} lee
+     * su nombre). Son opcionales, por eso {@code left join}: un convenio sin
+     * proveedor o sin bodega debe seguir apareciendo en el listado.
+     */
+    @Query(value = """
             select c from Convenio c
+            left join fetch c.proveedor
+            left join fetch c.bodega
             where (:estado is null or c.estado = :estado)
               and (:tipo is null or c.tipo = :tipo)
               and (:nombre is null or lower(c.nombre) like lower(concat('%', cast(:nombre as string), '%')))
             order by c.fechaCreacion desc
+            """,
+            countQuery = """
+            select count(c) from Convenio c
+            where (:estado is null or c.estado = :estado)
+              and (:tipo is null or c.tipo = :tipo)
+              and (:nombre is null or lower(c.nombre) like lower(concat('%', cast(:nombre as string), '%')))
             """)
     Page<Convenio> buscar(
             @Param("estado") EstadoConvenio estado,

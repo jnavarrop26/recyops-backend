@@ -7,8 +7,8 @@ import com.recyops.api.platform.excepciones.EmpresaYaExisteException;
 import com.recyops.api.platform.excepciones.SchemaInvalidoException;
 import com.recyops.api.platform.interfaces.PlataformaService;
 import com.recyops.api.tenant.ContextoEmpresa;
+import com.recyops.api.tenant.MigradorEsquemas;
 import com.recyops.api.usuario.service.ClienteSupabaseAdmin;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.Statement;
@@ -17,10 +17,8 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 @Service
 public class PlataformaServiceImpl implements PlataformaService {
@@ -33,12 +31,14 @@ public class PlataformaServiceImpl implements PlataformaService {
     private final DataSource dataSource;
     private final JdbcTemplate jdbc;
     private final ClienteSupabaseAdmin supabaseAdmin;
+    private final MigradorEsquemas migradorEsquemas;
 
     public PlataformaServiceImpl(DataSource dataSource, JdbcTemplate jdbc,
-            ClienteSupabaseAdmin supabaseAdmin) {
+            ClienteSupabaseAdmin supabaseAdmin, MigradorEsquemas migradorEsquemas) {
         this.dataSource = dataSource;
         this.jdbc = jdbc;
         this.supabaseAdmin = supabaseAdmin;
+        this.migradorEsquemas = migradorEsquemas;
     }
 
     @Override
@@ -105,40 +105,14 @@ public class PlataformaServiceImpl implements PlataformaService {
 
     private void ejecutarDdlEsquema(String esquema) {
         try {
-            String sql = cargarDdl(esquema);
-            try (Connection conexion = dataSource.getConnection()) {
-                boolean autoCommitOriginal = conexion.getAutoCommit();
-                conexion.setAutoCommit(false);
-                try (Statement stmt = conexion.createStatement()) {
-                    for (String sentencia : sql.split(";")) {
-                        String limpio = sentencia.strip();
-                        if (!limpio.isEmpty()) {
-                            stmt.execute(limpio);
-                        }
-                    }
-                    conexion.commit();
-                } catch (Exception ex) {
-                    conexion.rollback();
-                    throw ex;
-                } finally {
-                    // Garantiza que la conexion vuelve al pool con el search_path correcto
-                    try (Statement reset = conexion.createStatement()) {
-                        reset.execute("SET search_path TO public");
-                    }
-                    conexion.setAutoCommit(autoCommitOriginal);
-                }
-            }
+            // Flyway crea el esquema y le aplica V1 y todo lo que venga despues.
+            // Antes esto leia una plantilla DDL suelta, que habia que mantener a
+            // mano en paralelo con las migraciones: una empresa nueva nacia sin
+            // los cambios que solo estaban en las migraciones.
+            migradorEsquemas.migrarEsquemaEmpresa(esquema);
         } catch (Exception ex) {
             throw new RuntimeException("Error al crear el esquema de la empresa: " + ex.getMessage(), ex);
         }
-    }
-
-    private String cargarDdl(String esquema) throws Exception {
-        // El DDL usa la variable psql :"esquema" para poder ejecutarse tambien
-        // desde la CLI; aqui se sustituye por el nombre real antes de ir a JDBC.
-        var resource = new ClassPathResource("db/esquema_empresa.psql");
-        return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8)
-                .replace(":\"esquema\"", esquema);
     }
 
     private void guardarPerfilAdmin(UUID supabaseId, String nombreCompleto, String username,
