@@ -75,6 +75,20 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<!-- En Boot 4.x el bean RestClient.Builder autoconfigurado (el que
+			     respeta spring.http.client.connect-timeout/read-timeout) vive en
+			     este starter, separado de webmvc. Sin el, AuthServiceImpl y
+			     ClienteSupabaseAdmin no tienen builder que inyectar. -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 			<exclusions>
@@ -181,6 +195,20 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- Postgres real en Docker para los tests: aisla @SpringBootTest del
+			     Supabase de produccion. Version gestionada por el BOM de
+			     spring-boot-dependencies (testcontainers-bom 2.x, de ahi el
+			     prefijo testcontainers- en los artifactId), no se fija aqui. -->
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

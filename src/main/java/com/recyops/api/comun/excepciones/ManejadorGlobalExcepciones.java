@@ -7,11 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 /**
  * Traduce las excepciones de todos los modulos al cuerpo {@link ErrorApi}.
@@ -42,6 +44,28 @@ public class ManejadorGlobalExcepciones {
         log.warn("Validacion fallida en {} {} -> {}", peticion.getMethod(), peticion.getRequestURI(), detalle);
         return ResponseEntity.badRequest()
                 .body(ErrorApi.de(400, "Validacion fallida", detalle, peticion.getRequestURI()));
+    }
+
+    /** Dos operaciones concurrentes pisaron la misma fila (@Version); pedir reintento. */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorApi> manejarConflictoConcurrencia(ObjectOptimisticLockingFailureException ex,
+            HttpServletRequest peticion) {
+        log.warn("Conflicto de concurrencia en {} {}: {}", peticion.getMethod(), peticion.getRequestURI(),
+                ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorApi.de(409, "Conflict",
+                        "El recurso fue modificado por otra operacion; vuelve a intentarlo",
+                        peticion.getRequestURI()));
+    }
+
+    /** @Min/@Max u otras restricciones en @RequestParam/@PathVariable (validacion nativa desde Spring 6.1). */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorApi> manejarParametroInvalido(HandlerMethodValidationException ex,
+            HttpServletRequest peticion) {
+        log.warn("Parametro invalido en {} {} -> {}", peticion.getMethod(), peticion.getRequestURI(),
+                ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ErrorApi.de(400, "Validacion fallida", ex.getBody().getDetail(), peticion.getRequestURI()));
     }
 
     /** Rechazos de @PreAuthorize (p. ej. un operario pidiendo recursos de admin). */

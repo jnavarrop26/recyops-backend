@@ -31,6 +31,13 @@ spring:
     properties:
       hibernate.format_sql: true
 
+  http:
+    client:
+      # Sin esto, un RestClient.Builder inyectado no tiene limite: un Supabase
+      # Auth colgado agotaria el pool de hilos de Tomcat esperando la respuesta.
+      connect-timeout: 3s
+      read-timeout: 10s
+
   security:
     oauth2:
       resourceserver:
@@ -72,12 +79,23 @@ recyops:
 
 # Observabilidad: Actuator + Micrometer -> Prometheus -> Grafana (ver monitoreo/)
 management:
+  server:
+    # Puerto separado a proposito: al diferir de server.port, Boot sirve actuator
+    # en un ApplicationContext hijo que reprocesa el mismo SecurityConfig (que
+    # permitAll-ea /actuator/**). La proteccion real es de red, no de aplicacion:
+    # en produccion (Render) solo server.port queda expuesto publicamente, este
+    # puerto nunca sale del host.
+    # 9091 y no 9090: ese puerto ya lo ocupa el propio contenedor de Prometheus
+    # (ver monitoreo/docker-compose.yml), que corre en la maquina host.
+    port: ${MANAGEMENT_PORT:9091}
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
   endpoint:
     health:
+      # Sin Authentication en el contexto de gestion, "when-authorized" nunca
+      # se cumple: el detalle queda oculto siempre. Conservador a proposito.
       show-details: when-authorized
   metrics:
     tags:

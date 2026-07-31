@@ -7,7 +7,10 @@ scrape_configs:
   - job_name: recyops-api
     metrics_path: /actuator/prometheus
     static_configs:
-      # host.docker.internal = tu maquina Windows vista desde el contenedor
-      - targets: ["host.docker.internal:8080"]
+      # host.docker.internal = tu maquina Windows vista desde el contenedor.
+      # Puerto 9091 = management.server.port: actuator vive ahi, separado del
+      # puerto de la app (8080), sin pasar por el filtro de seguridad JWT.
+      # (9090 lo ocupa el propio contenedor de Prometheus, ver docker-compose.yml)
+      - targets: ["host.docker.internal:9091"]
         labels:
           servicio: recyops-api

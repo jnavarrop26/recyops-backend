@@ -45,8 +45,11 @@ public class SecurityConfig {
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/prometheus").hasRole("ADMIN")
+                        // El contexto de gestion (management.server.port) reprocesa esta
+                        // misma configuracion, asi que /actuator/** SI pasa por este filtro
+                        // ahi tambien: permitAll aqui, la proteccion real es que ese puerto
+                        // nunca se expone publicamente (ver application.yaml).
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/platform/**").hasRole("SUPERADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
