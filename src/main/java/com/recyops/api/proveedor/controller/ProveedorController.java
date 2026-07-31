@@ -7,10 +7,13 @@ import com.recyops.api.proveedor.dtos.RespuestaProveedor;
 import com.recyops.api.proveedor.enums.EstadoProveedor;
 import com.recyops.api.proveedor.interfaces.ProveedorService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/proveedores")
+@Validated
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
@@ -37,8 +41,8 @@ public class ProveedorController {
             @RequestParam(required = false) EstadoProveedor estado,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) BigDecimal calificacionMin,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return proveedorService.listar(estado, nombre, calificacionMin, page, size);
     }
 

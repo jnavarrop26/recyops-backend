@@ -9,9 +9,12 @@ import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.usuario.dtos.RespuestaUsuarioBodega;
 import com.recyops.api.usuario.interfaces.UsuarioService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/bodegas")
+@Validated
 public class BodegaController {
 
     private final BodegaService bodegaService;
@@ -40,8 +44,8 @@ public class BodegaController {
             @RequestParam(required = false) EstadoBodega estado,
             @RequestParam(required = false) TipoOrganizacion tipoOrganizacion,
             @RequestParam(required = false) String nombre,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return bodegaService.listar(estado, tipoOrganizacion, nombre, page, size);
     }
 

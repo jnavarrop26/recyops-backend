@@ -9,8 +9,11 @@ import com.recyops.api.inventario.dtos.RespuestaLineaInventario;
 import com.recyops.api.inventario.dtos.RespuestaMovimiento;
 import com.recyops.api.inventario.interfaces.InventarioService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/inventario")
+@Validated
 public class InventarioController {
 
     private final InventarioService inventarioService;
@@ -36,8 +40,8 @@ public class InventarioController {
             @RequestParam UUID bodegaId,
             @RequestParam(required = false) UUID tipoMaterialId,
             @RequestParam(required = false) Boolean bajoMinimo,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return inventarioService.listar(bodegaId, tipoMaterialId, bajoMinimo, page, size);
     }
 
@@ -49,8 +53,8 @@ public class InventarioController {
     @GetMapping("/{id}/movimientos")
     public RespuestaPagina<RespuestaMovimiento> movimientos(
             @PathVariable UUID id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return inventarioService.movimientos(id, page, size);
     }
 

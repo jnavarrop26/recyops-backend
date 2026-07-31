@@ -31,9 +31,12 @@ public class AuthServiceImpl implements AuthService {
     private final RestClient clienteSupabase;
     private final String urlRestablecer;
 
-    public AuthServiceImpl(PropiedadesSupabase propiedades,
+    public AuthServiceImpl(RestClient.Builder restClientBuilder, PropiedadesSupabase propiedades,
             @Value("${recyops.cors.origenes-permitidos}") String origenesPermitidos) {
-        this.clienteSupabase = RestClient.builder()
+        // El builder inyectado (no RestClient.builder() estatico) respeta
+        // spring.http.client.connect-timeout/read-timeout: sin esto, un
+        // Supabase Auth colgado agotaria hilos de Tomcat sin limite.
+        this.clienteSupabase = restClientBuilder
                 .baseUrl(propiedades.url())
                 .defaultHeader("apikey", propiedades.anonKey())
                 .build();

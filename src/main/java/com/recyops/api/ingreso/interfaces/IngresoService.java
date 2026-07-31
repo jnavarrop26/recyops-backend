@@ -1,16 +1,16 @@
 package com.recyops.api.ingreso.interfaces;
 
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.ingreso.dtos.CuerpoIngreso;
 import com.recyops.api.ingreso.dtos.CuerpoPago;
 import com.recyops.api.ingreso.dtos.RespuestaIngreso;
 import com.recyops.api.ingreso.enums.EstadoIngreso;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 public interface IngresoService {
 
-    List<RespuestaIngreso> historial(LocalDate fechaDesde, LocalDate fechaHasta);
+    RespuestaPagina<RespuestaIngreso> historial(LocalDate fechaDesde, LocalDate fechaHasta, int page, int size);
 
     RespuestaIngreso obtener(Long id);
 

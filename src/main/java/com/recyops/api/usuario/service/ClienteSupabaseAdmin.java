@@ -22,8 +22,9 @@ public class ClienteSupabaseAdmin {
 
     private final RestClient cliente;
 
-    public ClienteSupabaseAdmin(PropiedadesSupabase propiedades) {
-        this.cliente = RestClient.builder()
+    public ClienteSupabaseAdmin(RestClient.Builder restClientBuilder, PropiedadesSupabase propiedades) {
+        // Builder inyectado: respeta spring.http.client.connect-timeout/read-timeout
+        this.cliente = restClientBuilder
                 .baseUrl(propiedades.url())
                 .defaultHeader("apikey", propiedades.serviceRoleKey())
                 .defaultHeader("Authorization", "Bearer " + propiedades.serviceRoleKey())

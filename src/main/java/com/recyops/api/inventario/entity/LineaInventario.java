@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -58,6 +59,12 @@ public class LineaInventario {
     @UpdateTimestamp
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
+
+    /** Bloqueo optimista: entradas/salidas/ajustes/mermas concurrentes sobre
+     * la misma linea no se pisan en silencio, la segunda falla con 409. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     public boolean estaBajoMinimo() {
         return stockActual.compareTo(stockMinimo) < 0;

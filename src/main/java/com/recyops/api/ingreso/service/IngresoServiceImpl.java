@@ -1,5 +1,6 @@
 package com.recyops.api.ingreso.service;
 
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.comun.excepciones.ReglaNegocioException;
 import com.recyops.api.ingreso.dtos.CuerpoDetalleIngreso;
 import com.recyops.api.ingreso.dtos.CuerpoIngreso;
@@ -20,8 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,12 +41,12 @@ public class IngresoServiceImpl implements IngresoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RespuestaIngreso> historial(LocalDate fechaDesde, LocalDate fechaHasta) {
+    public RespuestaPagina<RespuestaIngreso> historial(LocalDate fechaDesde, LocalDate fechaHasta, int page,
+            int size) {
         LocalDateTime desde = fechaDesde != null ? fechaDesde.atStartOfDay() : null;
         LocalDateTime hasta = fechaHasta != null ? fechaHasta.atTime(LocalTime.MAX) : null;
-        return ingresoRepository.buscarPorRango(desde, hasta).stream()
-                .map(RespuestaIngreso::desde)
-                .toList();
+        var pagina = ingresoRepository.buscarPorRango(desde, hasta, PageRequest.of(page, size));
+        return RespuestaPagina.desde(pagina, RespuestaIngreso::desde);
     }
 
     @Override

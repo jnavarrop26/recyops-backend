@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class PlataformaServiceImpl implements PlataformaService {
@@ -32,13 +34,16 @@ public class PlataformaServiceImpl implements PlataformaService {
     private final JdbcTemplate jdbc;
     private final ClienteSupabaseAdmin supabaseAdmin;
     private final MigradorEsquemas migradorEsquemas;
+    private final TransactionTemplate transactionTemplate;
 
     public PlataformaServiceImpl(DataSource dataSource, JdbcTemplate jdbc,
-            ClienteSupabaseAdmin supabaseAdmin, MigradorEsquemas migradorEsquemas) {
+            ClienteSupabaseAdmin supabaseAdmin, MigradorEsquemas migradorEsquemas,
+            PlatformTransactionManager transactionManager) {
         this.dataSource = dataSource;
         this.jdbc = jdbc;
         this.supabaseAdmin = supabaseAdmin;
         this.migradorEsquemas = migradorEsquemas;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Override
@@ -66,14 +71,21 @@ public class PlataformaServiceImpl implements PlataformaService {
                     "ADMIN",
                     cuerpo.schemaNombre());
 
-            guardarPerfilAdmin(supabaseId, cuerpo.adminNombreCompleto(),
-                    cuerpo.adminUsername(), cuerpo.adminEmail(), cuerpo.schemaNombre());
-
+            // Ambas escrituras (perfil admin en el schema tenant + registro en
+            // public.empresas) en una sola transaccion: si la segunda falla, la
+            // primera no queda huerfana. TransactionTemplate en vez de un metodo
+            // @Transactional aparte porque un @Transactional en un metodo privado
+            // llamado desde este mismo objeto no pasa por el proxy de Spring (no-op).
             UUID empresaId = UUID.randomUUID();
-            jdbc.update("""
-                    INSERT INTO public.empresas (id, nombre, nit, schema_name)
-                    VALUES (?, ?, ?, ?)
-                    """, empresaId, cuerpo.nombre(), cuerpo.nit(), cuerpo.schemaNombre());
+            UUID supabaseIdCreado = supabaseId;
+            transactionTemplate.executeWithoutResult(status -> {
+                guardarPerfilAdmin(supabaseIdCreado, cuerpo.adminNombreCompleto(),
+                        cuerpo.adminUsername(), cuerpo.adminEmail(), cuerpo.schemaNombre());
+                jdbc.update("""
+                        INSERT INTO public.empresas (id, nombre, nit, schema_name)
+                        VALUES (?, ?, ?, ?)
+                        """, empresaId, cuerpo.nombre(), cuerpo.nit(), cuerpo.schemaNombre());
+            });
 
             return new RespuestaEmpresaCreada(empresaId, cuerpo.nombre(), cuerpo.nit(),
                     cuerpo.schemaNombre(), supabaseId, cuerpo.adminEmail(), passwordTemporal);

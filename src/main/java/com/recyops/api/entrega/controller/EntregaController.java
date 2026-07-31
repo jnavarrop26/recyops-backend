@@ -7,6 +7,8 @@ import com.recyops.api.entrega.dtos.RespuestaRecibo;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import com.recyops.api.entrega.interfaces.EntregaService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.springframework.http.ContentDisposition;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/entregas")
+@Validated
 public class EntregaController {
 
     private final EntregaService entregaService;
@@ -42,8 +46,8 @@ public class EntregaController {
             @RequestParam(required = false) EstadoEntrega estado,
             @RequestParam(required = false) LocalDate fechaDesde,
             @RequestParam(required = false) LocalDate fechaHasta,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return entregaService.listar(bodegaId, proveedorId, estado, fechaDesde, fechaHasta, page, size);
     }
 
