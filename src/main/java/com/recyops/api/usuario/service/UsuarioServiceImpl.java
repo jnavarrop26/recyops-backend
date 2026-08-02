@@ -2,6 +2,7 @@ package com.recyops.api.usuario.service;
 
 import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.config.PropiedadesSupabase;
 import com.recyops.api.tenant.ContextoEmpresa;
@@ -23,6 +24,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +54,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RespuestaTrabajador> listarTrabajadores() {
-        return usuarioRepository.listarConRolYBodega().stream().map(RespuestaTrabajador::desde).toList();
+    public RespuestaPagina<RespuestaTrabajador> listarTrabajadores(int page, int size) {
+        return RespuestaPagina.desde(
+                usuarioRepository.listarConRolYBodega(PageRequest.of(page, size)),
+                RespuestaTrabajador::desde);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.recyops.api.usuario.interfaces;
 
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.usuario.dtos.CuerpoEditarTrabajador;
 import com.recyops.api.usuario.dtos.CuerpoTrabajador;
 import com.recyops.api.usuario.dtos.RespuestaRol;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 public interface UsuarioService {
 
-    List<RespuestaTrabajador> listarTrabajadores();
+    RespuestaPagina<RespuestaTrabajador> listarTrabajadores(int page, int size);
 
     RespuestaTrabajadorCreado registrarTrabajador(CuerpoTrabajador cuerpo);
 

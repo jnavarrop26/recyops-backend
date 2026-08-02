@@ -1,5 +1,6 @@
 package com.recyops.api.tarea.interfaces;
 
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.tarea.dtos.CuerpoAvance;
 import com.recyops.api.tarea.dtos.CuerpoTarea;
 import com.recyops.api.tarea.dtos.RespuestaAvance;
@@ -11,7 +12,7 @@ import java.util.UUID;
 public interface TareaService {
 
     /** Tablero del admin: todas las tareas con filtros opcionales. */
-    List<RespuestaTarea> listar(EstadoTarea estado, UUID asignadoId, UUID bodegaId);
+    RespuestaPagina<RespuestaTarea> listar(EstadoTarea estado, UUID asignadoId, UUID bodegaId, int page, int size);
 
     /** Lista del operario autenticado, ordenada por urgencia. */
     List<RespuestaTarea> misTareas();
