@@ -3,6 +3,7 @@ package com.recyops.api.tarea.service;
 import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.UsuarioAutenticado;
+import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.comun.excepciones.ReglaNegocioException;
 import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.tarea.dtos.CuerpoAvance;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,10 +49,11 @@ public class TareaServiceImpl implements TareaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RespuestaTarea> listar(EstadoTarea estado, UUID asignadoId, UUID bodegaId) {
-        return tareaRepository.buscar(estado, asignadoId, bodegaId).stream()
-                .map(RespuestaTarea::desde)
-                .toList();
+    public RespuestaPagina<RespuestaTarea> listar(EstadoTarea estado, UUID asignadoId, UUID bodegaId, int page,
+            int size) {
+        return RespuestaPagina.desde(
+                tareaRepository.buscar(estado, asignadoId, bodegaId, PageRequest.of(page, size)),
+                RespuestaTarea::desde);
     }
 
     @Override
