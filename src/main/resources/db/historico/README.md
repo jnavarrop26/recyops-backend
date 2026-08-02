@@ -18,7 +18,7 @@ provisionamiento por API solo ejecutaba la plantilla, nunca las migraciones.
 Ese doble mantenimiento fallo al menos una vez: la columna
 `avances_tarea.revisado` llego a la base de `empresa_demo` sin pasar por ningun
 archivo de este directorio ni por las plantillas. Ver el ADR en
-`docs/adr/001-flyway-migraciones-multi-tenant.md`.
+`docs/adr/adr-001_flyway-migraciones-multi-tenant.md`.
 
 ## Migraciones nuevas
 
