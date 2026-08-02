@@ -4,6 +4,8 @@ import com.recyops.api.tarea.entity.Tarea;
 import com.recyops.api.tarea.enums.EstadoTarea;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,10 +22,11 @@ public interface TareaRepository extends JpaRepository<Tarea, UUID> {
               and (:bodegaId is null or t.bodega.id = :bodegaId)
             order by t.fechaCreacion desc
             """)
-    List<Tarea> buscar(
+    Page<Tarea> buscar(
             @Param("estado") EstadoTarea estado,
             @Param("asignadoId") UUID asignadoId,
-            @Param("bodegaId") UUID bodegaId);
+            @Param("bodegaId") UUID bodegaId,
+            Pageable pageable);
 
     /** Mismo fetch que {@link #buscar}: alimenta "mis tareas" del operario. */
     @Query("""

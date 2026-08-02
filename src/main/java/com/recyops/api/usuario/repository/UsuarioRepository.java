@@ -4,6 +4,8 @@ import com.recyops.api.usuario.entity.Usuario;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,7 +29,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
             left join fetch u.bodega
             order by u.nombreCompleto
             """)
-    List<Usuario> listarConRolYBodega();
+    Page<Usuario> listarConRolYBodega(Pageable pageable);
 
     /** Con el rol resuelto: {@code RespuestaUsuarioBodega} lee su nombre. */
     @Query("""
