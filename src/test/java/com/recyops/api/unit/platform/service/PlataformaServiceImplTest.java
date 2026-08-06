@@ -1,4 +1,4 @@
-package com.recyops.api.platform.service;
+package com.recyops.api.unit.platform.service;
 
 class PlataformaServiceImplTest {
 }

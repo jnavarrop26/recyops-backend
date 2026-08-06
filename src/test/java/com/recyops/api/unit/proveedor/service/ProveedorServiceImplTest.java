@@ -1,4 +1,4 @@
-package com.recyops.api.proveedor.service;
+package com.recyops.api.unit.proveedor.service;
 
 class ProveedorServiceImplTest {
 }

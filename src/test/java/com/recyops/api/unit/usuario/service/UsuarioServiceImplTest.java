@@ -1,4 +1,4 @@
-package com.recyops.api.usuario.service;
+package com.recyops.api.unit.usuario.service;
 
 class UsuarioServiceImplTest {
 }

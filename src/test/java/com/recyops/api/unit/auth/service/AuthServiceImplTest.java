@@ -1,4 +1,4 @@
-package com.recyops.api.auth.service;
+package com.recyops.api.unit.auth.service;
 
 class AuthServiceImplTest {
 }

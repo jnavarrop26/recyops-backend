@@ -58,6 +58,7 @@ supabase:
 recyops:
   cors:
     # Origen del cliente Vite/Bun en desarrollo
+    # Limite glob
     origenes-permitidos: ${RECYOPS_CORS_ORIGENES:http://localhost:5173}
   auth:
     # Limite de peticiones por IP y por minuto sobre /api/auth/** (anti fuerza bruta)

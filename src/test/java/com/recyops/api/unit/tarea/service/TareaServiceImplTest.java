@@ -1,4 +1,4 @@
-package com.recyops.api.tarea.service;
+package com.recyops.api.unit.tarea.service;
 
 class TareaServiceImplTest {
 }

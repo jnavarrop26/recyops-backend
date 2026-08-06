@@ -1,4 +1,4 @@
-package com.recyops.api.ingreso.service;
+package com.recyops.api.unit.ingreso.service;
 
 class IngresoServiceImplTest {
 }

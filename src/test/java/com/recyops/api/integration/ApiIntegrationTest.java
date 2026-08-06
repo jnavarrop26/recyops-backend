@@ -1,4 +1,4 @@
-package com.recyops.api;
+package com.recyops.api.integration;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;

@@ -1,4 +1,4 @@
-package com.recyops.api.log.service;
+package com.recyops.api.unit.log.service;
 
 class LogServiceImplTest {
 }

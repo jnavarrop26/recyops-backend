@@ -1,8 +1,8 @@
-package com.recyops.api;
+package com.recyops.api.integration;
 
 import org.junit.jupiter.api.Test;
 
-class RecyopsApiApplicationTests extends ApiIntegrationTest {
+class RecyopsApiApplicationIT extends ApiIntegrationTest {
 
 	@Test
 	void contextLoads() {

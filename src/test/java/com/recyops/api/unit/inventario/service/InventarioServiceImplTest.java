@@ -1,4 +1,4 @@
-package com.recyops.api.inventario.service;
+package com.recyops.api.unit.inventario.service;
 
 class InventarioServiceImplTest {
 }

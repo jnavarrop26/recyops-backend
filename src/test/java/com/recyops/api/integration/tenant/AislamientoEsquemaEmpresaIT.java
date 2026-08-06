@@ -1,11 +1,13 @@
-package com.recyops.api.tenant;
+package com.recyops.api.integration.tenant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.recyops.api.ApiIntegrationTest;
 import com.recyops.api.bodega.entity.Bodega;
 import com.recyops.api.bodega.enums.TipoOrganizacion;
 import com.recyops.api.bodega.repository.BodegaRepository;
+import com.recyops.api.integration.ApiIntegrationTest;
+import com.recyops.api.tenant.ContextoEmpresa;
+import com.recyops.api.tenant.MigradorEsquemas;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * transaccion (por eso NO se anota el test con @Transactional): asi cada
  * llamada resuelve el tenant de nuevo, igual que cada peticion HTTP real.
  */
-class AislamientoEsquemaEmpresaTest extends ApiIntegrationTest {
+class AislamientoEsquemaEmpresaIT extends ApiIntegrationTest {
 
     @Autowired
     private MigradorEsquemas migradorEsquemas;

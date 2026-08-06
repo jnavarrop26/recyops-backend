@@ -1,4 +1,4 @@
-package com.recyops.api.dashboard.service;
+package com.recyops.api.unit.dashboard.service;
 
 class DashboardServiceImplTest {
 }

@@ -1,4 +1,4 @@
-package com.recyops.api.convenio.service;
+package com.recyops.api.unit.convenio.service;
 
 class ConvenioServiceImplTest {
 }
