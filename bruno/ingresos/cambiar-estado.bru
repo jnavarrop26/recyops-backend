@@ -1,0 +1,28 @@
+meta {
+  name: Cambiar Estado de Ingreso
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base_url}}/api/ingresos/:id/estado?valor=EN_BODEGA
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+params:query {
+  valor: EN_BODEGA
+}
+
+docs {
+  Solo rol ADMIN.
+  valor: POR_CLASIFICAR | EN_BODEGA | DESPACHADO | RECHAZADO
+}

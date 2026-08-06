@@ -1,0 +1,23 @@
+meta {
+  name: Avances de la Tarea
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/api/tareas/:id/avances
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-tarea
+}
+
+docs {
+  Bitacora de avances (admin o asignado).
+}

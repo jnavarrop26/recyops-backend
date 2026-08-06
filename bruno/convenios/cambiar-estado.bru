@@ -1,0 +1,27 @@
+meta {
+  name: Cambiar Estado Convenio
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base_url}}/api/convenios/:id/estado?valor=ACTIVO
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-convenio
+}
+
+params:query {
+  valor: ACTIVO
+}
+
+docs {
+  valor: ACTIVO | INACTIVO | VENCIDO | SUSPENDIDO
+}

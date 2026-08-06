@@ -1,0 +1,25 @@
+meta {
+  name: Listar Materiales
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/materiales
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~categoria: PET
+  ~resina: PET1
+  ~color: NATURAL
+  ~empaque: PACA
+  ~activo: true
+  page: 0
+  size: 20
+}

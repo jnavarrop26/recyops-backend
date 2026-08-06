@@ -1,0 +1,45 @@
+meta {
+  name: Crear Bodega
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/api/bodegas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "Bodega Central",
+    "direccion": "Calle 10 # 25-30, Bogota",
+    "telefono": "3101234567",
+    "email": "central@empresa.com",
+    "nit": "900123456-7",
+    "latitud": 4.60971,
+    "longitud": -74.08175,
+    "tipoOrganizacion": "PROPIA"
+  }
+}
+
+docs {
+  **Rol:** ADMIN.
+
+  **Validaciones:**
+  - `nombre`, `direccion`, `nit`: obligatorios (no vacios).
+  - `email`: formato valido si se envia (campo opcional).
+  - `telefono`, `latitud`, `longitud`: opcionales, sin validacion de formato.
+  - `tipoOrganizacion`: obligatorio. PROPIA | ALIADA | TERCERIZADA.
+
+  **Notas:**
+  - `estado` no es parte del body: toda bodega nueva nace en ACTIVA. Para
+    cambiarla usar PATCH /api/bodegas/{id}/estado.
+
+  **Errores:**
+  - 400: violacion de alguna de las validaciones anteriores.
+}

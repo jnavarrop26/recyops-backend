@@ -1,0 +1,26 @@
+meta {
+  name: Obtener Convenio
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/convenios/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-convenio
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig: `/api/convenios/**` exige `hasRole("ADMIN")`).
+
+  **Errores:**
+  - 404: no existe un convenio con ese id.
+}

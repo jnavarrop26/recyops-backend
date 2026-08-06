@@ -1,0 +1,30 @@
+meta {
+  name: Actualizar Proveedor
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{base_url}}/api/proveedores/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-proveedor
+}
+
+body:json {
+  {
+    "nombre": "Recicladora El Progreso",
+    "nit": "901234567-8",
+    "contacto": "Pedro Martinez",
+    "telefono": "3157654321",
+    "email": "contacto@elprogreso.com",
+    "direccion": "Carrera 45 # 12-34, Medellin"
+  }
+}

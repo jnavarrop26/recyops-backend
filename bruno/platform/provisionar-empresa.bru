@@ -1,0 +1,51 @@
+meta {
+  name: Provisionar Empresa
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/platform/empresas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "EcoVerde S.A.S.",
+    "nit": "900987654-3",
+    "schemaNombre": "empresa_ecoverde",
+    "adminEmail": "admin@ecoverde.com",
+    "adminNombreCompleto": "Ana Torres",
+    "adminUsername": "ana.torres",
+    "adminPassword": "cambiar-en-primer-login"
+  }
+}
+
+docs {
+  **Rol:** SUPERADMIN — `/api/platform/**` exige `hasRole('SUPERADMIN')` en SecurityConfig, y el controller repite `@PreAuthorize("hasRole('SUPERADMIN')")` a nivel de clase.
+
+  **Validaciones:**
+  - `nombre` obligatorio, max 200 caracteres.
+  - `nit` obligatorio, max 30 caracteres.
+  - `schemaNombre` obligatorio, patron `^[a-z][a-z0-9_]{1,62}$` (inicia con letra, solo minusculas/numeros/guion bajo, 2-63 caracteres).
+  - `adminEmail` obligatorio, formato de correo valido.
+  - `adminNombreCompleto` obligatorio, max 200 caracteres.
+  - `adminUsername` obligatorio, max 100 caracteres.
+  - `adminPassword` opcional: si se omite o va vacio, se genera una temporal aleatoria de 12 caracteres.
+
+  **Errores:**
+  - 400 SchemaInvalidoException: `schemaNombre` no pasa la validacion de negocio (ademas del `@Pattern` del body).
+  - 409 EmpresaYaExisteException: ya existe una empresa con ese `nit` o ese `schemaNombre` en `public.empresas`.
+  - 409 UsuarioDuplicadoException: el `adminEmail` ya esta registrado en Supabase Auth.
+  - 502 ErrorSupabaseAuthException: fallo la comunicacion con la Admin API de Supabase al crear el usuario.
+
+  **Notas:**
+  - Aprovisiona en cascada: crea el esquema del tenant (Flyway aplica la migracion base V1 y todas las posteriores), crea el usuario admin en Supabase Auth (`app_metadata.rol=ADMIN`, `app_metadata.empresa_schema=schemaNombre`), guarda su perfil en `<esquema>.usuarios` y el registro en `public.empresas`, todo en una sola transaccion logica.
+  - Si algo falla despues de crear el esquema o el usuario Supabase, se hace rollback: se elimina el usuario en Supabase (best-effort) y `DROP SCHEMA ... CASCADE` del esquema recien creado.
+  - Si `adminPassword` no se envio, la respuesta trae la password temporal generada (unica vez, no se puede volver a consultar); si se envio, ese campo vuelve `null` en la respuesta.
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Obtener Entrega
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/entregas/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-entrega
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  **Errores:**
+  - 404: no existe una entrega con ese id
+}

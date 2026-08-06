@@ -1,0 +1,23 @@
+meta {
+  name: Obtener Ingreso (por UUID)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/ingresos/uuid/:uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  uuid: uuid-del-ingreso
+}
+
+docs {
+  Identificador opaco para operarios: no revela la secuencia interna de IDs.
+}

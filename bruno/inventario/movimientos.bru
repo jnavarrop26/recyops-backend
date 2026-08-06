@@ -1,0 +1,24 @@
+meta {
+  name: Movimientos de la Linea
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/inventario/:id/movimientos
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-linea
+}
+
+params:query {
+  page: 0
+  size: 20
+}

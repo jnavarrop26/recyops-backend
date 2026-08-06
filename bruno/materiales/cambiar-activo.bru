@@ -1,0 +1,25 @@
+meta {
+  name: Activar/Desactivar Material
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{base_url}}/api/materiales/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-material
+}
+
+body:json {
+  {
+    "activo": false
+  }
+}

@@ -1,0 +1,31 @@
+meta {
+  name: Usuarios de Bodega
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/bodegas/:id/usuarios
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-bodega
+}
+
+docs {
+  Usuarios/trabajadores asignados a la bodega.
+
+  **Rol:** ADMIN.
+
+  **Notas:**
+  - No valida que la bodega exista: un id inexistente devuelve lista vacia,
+    no 404.
+  - Devuelve todos los usuarios asignados sin filtrar por estado (incluye
+    inactivos).
+}

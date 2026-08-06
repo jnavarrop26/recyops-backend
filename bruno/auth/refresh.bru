@@ -1,0 +1,29 @@
+meta {
+  name: Refresh Token
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/auth/refresh
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refresh_token}}"
+  }
+}
+
+docs {
+  **Rol:** ninguno — `/api/auth/**` esta en `permitAll` (SecurityConfig).
+
+  **Validaciones:** `refreshToken` obligatorio (no vacio).
+
+  **Errores:**
+  - 401 SesionExpiradaException: el refresh token es invalido o ya expiro.
+
+  **Notas:**
+  - Supabase rota el refresh token en cada uso: el `refreshToken` de la respuesta reemplaza al enviado; el anterior queda invalidado y no se puede reusar.
+}

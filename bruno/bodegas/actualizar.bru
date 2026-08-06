@@ -1,0 +1,48 @@
+meta {
+  name: Actualizar Bodega
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/api/bodegas/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-bodega
+}
+
+body:json {
+  {
+    "nombre": "Bodega Central",
+    "direccion": "Calle 10 # 25-30, Bogota",
+    "telefono": "3101234567",
+    "email": "central@empresa.com",
+    "nit": "900123456-7",
+    "latitud": 4.60971,
+    "longitud": -74.08175,
+    "tipoOrganizacion": "PROPIA"
+  }
+}
+
+docs {
+  **Rol:** ADMIN.
+
+  **Validaciones:** mismas que POST /api/bodegas — `nombre`, `direccion`,
+  `nit` obligatorios; `email` con formato valido si se envia;
+  `tipoOrganizacion` obligatorio (PROPIA | ALIADA | TERCERIZADA).
+
+  **Notas:**
+  - El body no incluye `estado`: este endpoint no lo modifica. Usar
+    PATCH /api/bodegas/{id}/estado para eso.
+
+  **Errores:**
+  - 404: no existe bodega con ese id.
+  - 400: violacion de alguna validacion del body.
+}

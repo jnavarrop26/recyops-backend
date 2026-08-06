@@ -1,0 +1,34 @@
+meta {
+  name: Eliminar Entrega
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/entregas/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-entrega
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  Responde 204 No Content.
+
+  **Errores:**
+  - 404: no existe una entrega con ese id
+  - 400: la entrega ya está DESPACHADA (no se puede eliminar)
+  - 400: el stock disponible no alcanza para revertir el movimiento de entrada (p. ej. si ya se ajustó o mermó ese stock)
+
+  **Notas:**
+  - Borrado físico, no lógico: la fila se elimina de la base de datos
+  - Antes de eliminar, revierte la entrada de inventario que generó la recepción (movimiento SALIDA con referencia "Eliminacion <código>"), dejando rastro auditable en los movimientos
+}

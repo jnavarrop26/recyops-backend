@@ -1,0 +1,32 @@
+meta {
+  name: Editar Trabajador
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{base_url}}/api/admin/usuarios/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-trabajador
+}
+
+body:json {
+  {
+    "nombreCompleto": "Juan Perez",
+    "telefono": "3201112233",
+    "bodegaId": "uuid-de-la-bodega",
+    "rolId": "uuid-del-rol"
+  }
+}
+
+docs {
+  Solo rol ADMIN. El email y el username son la identidad y no se editan.
+}

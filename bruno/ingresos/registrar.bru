@@ -1,0 +1,47 @@
+meta {
+  name: Registrar Ingreso
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/api/ingresos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "cliente": "Recicladora El Progreso",
+    "cedula": "1023456789",
+    "bodegaDestino": "Bodega Central",
+    "encargado": "Maria Lopez",
+    "placaVehiculo": "ABC123",
+    "pesoNetoTotal": 320.5,
+    "total": 480750,
+    "materiales": [
+      {
+        "categoria": "PET",
+        "pesoBruto": 180.0,
+        "tara": 5.0,
+        "precioKilo": 1500,
+        "observaciones": "Botellas limpias"
+      },
+      {
+        "categoria": "CARTON",
+        "pesoBruto": 150.5,
+        "tara": 5.0,
+        "precioKilo": 800,
+        "observaciones": ""
+      }
+    ]
+  }
+}
+
+docs {
+  Si llega la lista de materiales, el backend recalcula los totales desde ella.
+}

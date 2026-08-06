@@ -1,0 +1,19 @@
+meta {
+  name: Obtener Linea de Inventario
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/inventario/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-linea
+}

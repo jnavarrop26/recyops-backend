@@ -1,0 +1,23 @@
+meta {
+  name: Calificar Proveedor
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base_url}}/api/proveedores/:id/calificacion?valor=4.5
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-proveedor
+}
+
+params:query {
+  valor: 4.5
+}

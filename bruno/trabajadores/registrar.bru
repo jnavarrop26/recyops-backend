@@ -1,0 +1,32 @@
+meta {
+  name: Registrar Trabajador
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/admin/usuarios
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombreCompleto": "Juan Perez",
+    "username": "juan.perez",
+    "email": "juan.perez@empresa.com",
+    "telefono": "3201112233",
+    "bodegaId": "uuid-de-la-bodega",
+    "rolId": "uuid-del-rol",
+    "password": "password-seguro-8+"
+  }
+}
+
+docs {
+  Solo rol ADMIN.
+  password es opcional; si se envia, minimo 8 caracteres.
+}

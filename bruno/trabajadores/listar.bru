@@ -1,0 +1,19 @@
+meta {
+  name: Listar Trabajadores
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/admin/usuarios
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Solo rol ADMIN (protegido en SecurityConfig).
+}

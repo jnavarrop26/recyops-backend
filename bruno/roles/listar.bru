@@ -1,0 +1,22 @@
+meta {
+  name: Listar Roles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/roles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  **Rol:** ADMIN — `/api/roles/**` exige `hasRole('ADMIN')` en SecurityConfig; el controller no tiene `@PreAuthorize` propio, la proteccion es solo la regla global.
+
+  **Notas:**
+  - Devuelve los roles de la tabla `roles` del esquema del tenant actual (resuelto por `empresa_schema` del JWT), no un catalogo global de plataforma.
+}

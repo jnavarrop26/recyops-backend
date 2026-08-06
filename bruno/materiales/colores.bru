@@ -1,0 +1,15 @@
+meta {
+  name: Listar Colores
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base_url}}/api/materiales/colores
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

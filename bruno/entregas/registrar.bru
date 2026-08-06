@@ -1,0 +1,43 @@
+meta {
+  name: Registrar Entrega
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/entregas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "proveedorId": "uuid-del-proveedor",
+    "bodegaId": "uuid-de-la-bodega",
+    "tipoMaterialId": "uuid-del-material",
+    "pesoKg": 150.5,
+    "personaEntrega": "Carlos Ruiz",
+    "fechaRecepcion": "2026-07-16T09:30:00"
+  }
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  **Validaciones:**
+  - `proveedorId`, `bodegaId`, `tipoMaterialId`: obligatorios y deben existir
+  - `pesoKg`: obligatorio, mayor que 0
+  - `fechaRecepcion`: opcional; si es null se usa la fecha/hora actual
+
+  **Errores:**
+  - 404: proveedorId, bodegaId o tipoMaterialId no corresponden a un registro existente
+  - 400: pesoKg nulo o menor/igual a 0, o falta algún campo obligatorio
+
+  **Notas:**
+  - El código (`ENT-000001`, ...) se genera automáticamente por consecutivo; no se envía en el body
+  - El peso recibido entra de inmediato al inventario de la bodega (movimiento ENTRADA); si la bodega no tiene línea para ese material, se crea automáticamente con topes en 0
+}

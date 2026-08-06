@@ -1,0 +1,40 @@
+meta {
+  name: Cambiar Estado Entrega
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/api/entregas/:id/estado?valor=EN_PROCESO
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-entrega
+}
+
+params:query {
+  valor: EN_PROCESO
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  `valor`: RECIBIDA | EN_PROCESO | PROCESADA | DESPACHADA
+
+  **Validaciones:**
+  - Solo se permite avanzar al siguiente estado del flujo (RECIBIDA > EN_PROCESO > PROCESADA > DESPACHADA); no se puede saltar estados ni retroceder
+
+  **Errores:**
+  - 404: no existe una entrega con ese id
+  - 400: `valor` no es el siguiente estado válido del flujo
+  - 400: al pasar a DESPACHADA, si el stock disponible en la bodega no alcanza para descontar el peso de la entrega
+
+  **Notas:**
+  - Al pasar a DESPACHADA se descuenta el peso de la entrega del inventario de la bodega (movimiento SALIDA)
+}
