@@ -53,11 +53,9 @@ graphify-out/
 CLAUDE.md
 .claude/
 
-### Bruno ###
-bruno/
-
-
-
 
 ### docs ###
 docs/
+
+### Codegraph ###
+.codegraph/

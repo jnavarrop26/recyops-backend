@@ -1,0 +1,15 @@
+meta {
+  name: Listar Categorias
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/materiales/categorias
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

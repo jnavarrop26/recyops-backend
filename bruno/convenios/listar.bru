@@ -1,0 +1,38 @@
+meta {
+  name: Listar Convenios
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/convenios
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~estado: ACTIVO
+  ~tipo: COMPRA
+  ~nombre: convenio
+  page: 0
+  size: 20
+}
+
+docs {
+  Lista paginada de convenios, mas recientes primero.
+
+  **Rol:** ADMIN (SecurityConfig: `/api/convenios/**` exige `hasRole("ADMIN")`).
+
+  **Parámetros:**
+  - estado: ACTIVO | INACTIVO | VENCIDO | SUSPENDIDO (opcional)
+  - tipo: COMPRA | VENTA | INTERCAMBIO | SERVICIO (opcional)
+  - nombre: coincidencia parcial, sin distinguir mayúsculas/minúsculas (opcional)
+  - page: default 0
+  - size: default 20, máximo 100
+
+  **Notas:** cada convenio trae `proveedorNombre`/`bodegaNombre` resueltos (left join), por eso siguen apareciendo aunque no tengan proveedor o bodega asociada.
+}

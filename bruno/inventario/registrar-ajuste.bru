@@ -1,0 +1,30 @@
+meta {
+  name: Registrar Ajuste
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/api/inventario/:id/ajuste
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-linea
+}
+
+body:json {
+  {
+    "cantidadNueva": 850,
+    "motivo": "Conteo fisico de fin de mes"
+  }
+}
+
+docs {
+  Fija el stock en la cantidad nueva (no suma ni resta).
+}

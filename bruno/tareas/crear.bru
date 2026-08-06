@@ -1,0 +1,31 @@
+meta {
+  name: Crear Tarea
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/tareas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "titulo": "Clasificar lote de PET",
+    "descripcion": "Separar por color el lote recibido el 15 de julio",
+    "asignadoId": "uuid-del-usuario",
+    "bodegaId": "uuid-de-la-bodega",
+    "prioridad": "ALTA",
+    "fechaLimite": "2026-07-20"
+  }
+}
+
+docs {
+  Solo rol ADMIN.
+  prioridad: BAJA | MEDIA | ALTA
+}

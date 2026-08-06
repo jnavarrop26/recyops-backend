@@ -1,0 +1,30 @@
+meta {
+  name: Registrar Pago de Ingreso
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base_url}}/api/ingresos/:id/pago
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "metodoPago": "EFECTIVO"
+  }
+}
+
+docs {
+  Solo rol ADMIN. metodoPago: EFECTIVO | TRANSFERENCIA.
+  Marca el ingreso como estadoPago=PAGADO.
+}

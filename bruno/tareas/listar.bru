@@ -1,0 +1,26 @@
+meta {
+  name: Listar Tareas (Tablero)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/tareas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~estado: PENDIENTE
+  ~asignadoId: uuid-del-usuario
+  ~bodegaId: uuid-de-la-bodega
+}
+
+docs {
+  Solo rol ADMIN (tablero completo).
+  estado: PENDIENTE | EN_PROGRESO | COMPLETADA | REVISION | CANCELADA
+}

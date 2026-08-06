@@ -1,0 +1,27 @@
+meta {
+  name: Listar Proveedores
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/proveedores
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~estado: ACTIVO
+  ~nombre: recicladora
+  ~calificacionMin: 3.5
+  page: 0
+  size: 20
+}
+
+docs {
+  estado: ACTIVO | INACTIVO | BLOQUEADO
+}

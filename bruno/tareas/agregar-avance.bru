@@ -1,0 +1,30 @@
+meta {
+  name: Agregar Avance
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/api/tareas/:id/avances
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-tarea
+}
+
+body:json {
+  {
+    "cantidad": 50,
+    "descripcion": "Clasificados 50 kg de PET cristal"
+  }
+}
+
+docs {
+  cantidad es opcional; descripcion maximo 300 caracteres.
+}

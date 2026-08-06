@@ -1,0 +1,39 @@
+meta {
+  name: Cambiar Estado Bodega
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base_url}}/api/bodegas/:id/estado?valor=ACTIVA
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-bodega
+}
+
+params:query {
+  valor: ACTIVA
+}
+
+docs {
+  **Rol:** ADMIN.
+
+  **Parametros:**
+  - `valor` (query, obligatorio): ACTIVA | INACTIVA | MANTENIMIENTO.
+
+  **Errores:**
+  - 404: no existe bodega con ese id.
+  - 400: `valor` ausente o con un enum invalido.
+
+  **Notas:**
+  - Sin validacion cruzada: se puede poner una bodega en
+    INACTIVA/MANTENIMIENTO aunque tenga inventario, tareas o usuarios
+    activos asociados — el service solo actualiza el campo `estado`.
+}

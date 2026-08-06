@@ -1,0 +1,28 @@
+meta {
+  name: Cambiar Estado Trabajador
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/api/admin/usuarios/:id/estado?valor=ACTIVO
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-trabajador
+}
+
+params:query {
+  valor: ACTIVO
+}
+
+docs {
+  Solo rol ADMIN.
+  valor: ACTIVO | INACTIVO
+}

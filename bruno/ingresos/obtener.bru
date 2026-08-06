@@ -1,0 +1,24 @@
+meta {
+  name: Obtener Ingreso (por ID)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/ingresos/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+docs {
+  Solo rol ADMIN: usa el ID secuencial interno.
+  Los operarios deben usar GET /api/ingresos/uuid/{uuid}.
+}

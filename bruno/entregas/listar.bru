@@ -1,0 +1,35 @@
+meta {
+  name: Listar Entregas
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/entregas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~bodegaId: uuid-de-la-bodega
+  ~proveedorId: uuid-del-proveedor
+  ~estado: RECIBIDA
+  ~fechaDesde: 2026-01-01
+  ~fechaHasta: 2026-12-31
+  page: 0
+  size: 20
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  **Parámetros:**
+  - `estado`: RECIBIDA | EN_PROCESO | PROCESADA | DESPACHADA
+  - `fechaDesde` / `fechaHasta`: filtran por `fechaRecepcion`, inclusive (desde 00:00 hasta el final del día indicado)
+  - `page`: default 0
+  - `size`: default 20, máximo 100
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Obtener Bodega
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/bodegas/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-bodega
+}
+
+docs {
+  **Rol:** ADMIN (cae bajo `/api/bodegas/**`; a diferencia de listar, que es
+  para cualquier autenticado).
+
+  **Errores:**
+  - 404: no existe bodega con ese id.
+}

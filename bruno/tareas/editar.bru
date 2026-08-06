@@ -1,0 +1,34 @@
+meta {
+  name: Editar Tarea
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/tareas/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-tarea
+}
+
+body:json {
+  {
+    "titulo": "Clasificar lote de PET",
+    "descripcion": "Separar por color el lote recibido el 15 de julio",
+    "asignadoId": "uuid-del-usuario",
+    "bodegaId": "uuid-de-la-bodega",
+    "prioridad": "ALTA",
+    "fechaLimite": "2026-07-20"
+  }
+}
+
+docs {
+  Solo rol ADMIN.
+}

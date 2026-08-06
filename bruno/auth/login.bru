@@ -1,0 +1,32 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "admin@empresa.com",
+    "password": "miPassword123"
+  }
+}
+
+docs {
+  **Rol:** ninguno — `/api/auth/**` esta en `permitAll` (SecurityConfig).
+
+  **Validaciones:** `username` y `password` obligatorios (no vacios).
+
+  **Errores:**
+  - 401 CredencialesInvalidasException: Supabase rechaza el password, o la respuesta no trae `access_token`.
+
+  **Notas:**
+  - `username` es el correo registrado en Supabase Auth (no hay campo de username separado en el login).
+  - La respuesta trae `rol` desde `app_metadata.rol` del usuario (default `OPERARIO` si no viene), y `nombreCompleto`/`username` desde `user_metadata` (con fallback al email).
+  - El JWT devuelto trae ademas `app_metadata.empresa_schema`, que las siguientes peticiones usan para enrutar al esquema del tenant (FiltroEsquemaEmpresa).
+}

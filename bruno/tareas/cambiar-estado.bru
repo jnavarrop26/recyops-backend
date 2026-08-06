@@ -1,0 +1,28 @@
+meta {
+  name: Cambiar Estado Tarea
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base_url}}/api/tareas/:id/estado?valor=EN_PROGRESO
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-tarea
+}
+
+params:query {
+  valor: EN_PROGRESO
+}
+
+docs {
+  valor: PENDIENTE | EN_PROGRESO | COMPLETADA | REVISION | CANCELADA
+  Admin mueve libre; operario solo avanza las suyas.
+}

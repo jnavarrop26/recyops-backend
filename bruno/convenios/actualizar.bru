@@ -1,0 +1,33 @@
+meta {
+  name: Actualizar Convenio
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/convenios/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-convenio
+}
+
+body:json {
+  {
+    "nombre": "Convenio compra PET 2026",
+    "tipo": "COMPRA",
+    "proveedorId": "uuid-del-proveedor",
+    "bodegaId": "uuid-de-la-bodega",
+    "fechaInicio": "2026-01-01",
+    "fechaFin": "2026-12-31",
+    "valorTotal": 25000000,
+    "responsable": "Laura Gomez",
+    "descripcion": "Compra mensual de PET post-consumo"
+  }
+}

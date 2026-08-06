@@ -1,0 +1,47 @@
+meta {
+  name: Crear Convenio
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/convenios
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "Convenio compra PET 2026",
+    "tipo": "COMPRA",
+    "proveedorId": "uuid-del-proveedor",
+    "bodegaId": "uuid-de-la-bodega",
+    "fechaInicio": "2026-01-01",
+    "fechaFin": "2026-12-31",
+    "valorTotal": 25000000,
+    "responsable": "Laura Gomez",
+    "descripcion": "Compra mensual de PET post-consumo"
+  }
+}
+
+docs {
+  **Rol:** ADMIN (SecurityConfig: `/api/convenios/**` exige `hasRole("ADMIN")`).
+
+  **Validaciones:**
+  - nombre: obligatorio, no vacío.
+  - tipo: obligatorio, uno de COMPRA | VENTA | INTERCAMBIO | SERVICIO.
+  - fechaInicio: obligatoria.
+  - Opcionales: proveedorId, bodegaId, fechaFin, valorTotal, responsable, descripcion.
+  - Si fechaFin viene informada, no puede ser anterior a fechaInicio.
+
+  **Errores:**
+  - 400: fechaFin anterior a fechaInicio.
+  - 404: proveedorId no existe (si se envía).
+  - 404: bodegaId no existe (si se envía).
+
+  **Notas:** el `codigo` (CNV-000001, CNV-000002, ...) se genera automáticamente con una secuencia; no se envía en el body.
+}

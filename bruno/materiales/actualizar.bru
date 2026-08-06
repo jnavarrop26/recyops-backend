@@ -1,0 +1,34 @@
+meta {
+  name: Actualizar Material
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{base_url}}/api/materiales/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-material
+}
+
+body:json {
+  {
+    "nombre": "PET cristal post-consumo",
+    "categoriaCodigo": "PET",
+    "subcategoriaCodigo": "PET_BOTELLA",
+    "codigoResinaCodigo": "PET1",
+    "colorCodigo": "NATURAL",
+    "unidadMedida": "KILOGRAMO",
+    "unidadEmpaque": "PACA",
+    "precioBase": 1500,
+    "factorCalidad": 1.0,
+    "umbralMerma": 0.05
+  }
+}

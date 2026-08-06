@@ -1,0 +1,23 @@
+meta {
+  name: Eliminar Tarea
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{base_url}}/api/tareas/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-tarea
+}
+
+docs {
+  Solo rol ADMIN y solo tareas en REVISION. Responde 204 No Content.
+}

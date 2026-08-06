@@ -1,0 +1,28 @@
+meta {
+  name: Crear Linea de Inventario
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/api/inventario
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "bodegaId": "uuid-de-la-bodega",
+    "tipoMaterialId": "uuid-del-material",
+    "stockMinimo": 100,
+    "stockMaximo": 5000
+  }
+}
+
+docs {
+  Abre una linea de stock para un material en una bodega.
+}

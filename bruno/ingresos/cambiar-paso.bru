@@ -1,0 +1,27 @@
+meta {
+  name: Cambiar Paso (Bascula) de Ingreso
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base_url}}/api/ingresos/:id/paso?valor=true
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+params:query {
+  valor: true
+}
+
+docs {
+  Solo rol ADMIN. Marca si el vehiculo ya paso por bascula (trazabilidad, no cambia estado).
+}

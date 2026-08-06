@@ -1,0 +1,23 @@
+meta {
+  name: Listar Subcategorias
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/materiales/subcategorias?categoria=PET
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  categoria: PET
+}
+
+docs {
+  categoria es obligatorio (codigo de la categoria padre).
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Recibo de Entrega
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/api/entregas/:id/recibo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-entrega
+}
+
+docs {
+  Genera el recibo de la entrega en PDF (ya está implementado; no responde 501).
+
+  **Rol:** ADMIN (SecurityConfig exige `hasRole("ADMIN")` para `/api/entregas/**`).
+
+  **Respuesta:** 200, `Content-Type: application/pdf`, `Content-Disposition: inline` con nombre `recibo-<código>.pdf`. Incluye código, proveedor, bodega, tipo de material, peso, persona que entrega, estado, fecha de recepción y quién registró la entrega.
+
+  **Errores:**
+  - 404: no existe una entrega con ese id
+  - 500: fallo técnico armando el PDF (ErrorGeneracionReciboException)
+
+  **Notas:**
+  - Las fuentes del PDF solo soportan WinAnsi: caracteres fuera de ese rango (emojis, comillas tipográficas) se reemplazan por "?"
+}

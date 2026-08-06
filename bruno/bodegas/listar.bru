@@ -1,0 +1,41 @@
+meta {
+  name: Listar Bodegas
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/bodegas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~estado: ACTIVA
+  ~tipoOrganizacion: PROPIA
+  ~nombre: bodega
+  page: 0
+  size: 20
+}
+
+docs {
+  Lista bodegas con filtros y paginacion.
+
+  **Rol:** cualquier usuario autenticado (ADMIN u OPERARIO) — a diferencia
+  del resto de endpoints de bodegas. SecurityConfig matchea `GET /api/bodegas`
+  exacto como `authenticated()` antes de la regla `/api/bodegas/**` (ADMIN);
+  el operario lo usa para alimentar el formulario de ingreso.
+
+  **Parametros:**
+  - `estado`, `tipoOrganizacion`: filtro exacto, opcionales.
+  - `nombre`: coincidencia parcial (LIKE), insensible a mayusculas, opcional.
+  - `page` (default 0, minimo 0), `size` (default 20, entre 1 y 100).
+  - Orden fijo por `nombre` ascendente, no configurable via query.
+
+  **Errores:**
+  - 400: `page` negativo o `size` fuera de 1-100.
+}

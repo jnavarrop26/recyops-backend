@@ -1,0 +1,19 @@
+meta {
+  name: Mis Tareas
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/tareas/mias
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Tareas del usuario autenticado (admin u operario).
+}

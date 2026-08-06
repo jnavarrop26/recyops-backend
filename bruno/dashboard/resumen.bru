@@ -1,0 +1,15 @@
+meta {
+  name: Resumen Dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/dashboard/resumen
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

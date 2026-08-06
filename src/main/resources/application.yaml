@@ -43,7 +43,7 @@ spring:
       resourceserver:
         jwt:
           # Claves de firma de Supabase Auth (Authentication > JWT Keys > firma asimetrica).
-          # Si el proyecto usa el JWT secret legado (HS256), ver docs/ESQUEMA_SUPABASE.md.
+          # Si el proyecto usa el JWT secret legado (HS256), ver docs/doc-002_esquema-supabase.md.
           jwk-set-uri: ${SUPABASE_URL:https://dggpfcefzalyoyvgjjxu.supabase.co}/auth/v1/.well-known/jwks.json
           # Supabase firma los access token con ES256 (curva P-256)
           jws-algorithms: ES256
@@ -58,6 +58,7 @@ supabase:
 recyops:
   cors:
     # Origen del cliente Vite/Bun en desarrollo
+    # Limite glob
     origenes-permitidos: ${RECYOPS_CORS_ORIGENES:http://localhost:5173}
   auth:
     # Limite de peticiones por IP y por minuto sobre /api/auth/** (anti fuerza bruta)

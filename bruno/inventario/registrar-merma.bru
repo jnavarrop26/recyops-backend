@@ -1,0 +1,30 @@
+meta {
+  name: Registrar Merma
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/api/inventario/:id/merma
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-de-la-linea
+}
+
+body:json {
+  {
+    "cantidad": 12.5,
+    "motivo": "Material contaminado con humedad"
+  }
+}
+
+docs {
+  Descuenta una perdida de material del stock.
+}

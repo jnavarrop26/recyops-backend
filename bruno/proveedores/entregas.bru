@@ -1,0 +1,19 @@
+meta {
+  name: Entregas del Proveedor
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/api/proveedores/:id/entregas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: uuid-del-proveedor
+}

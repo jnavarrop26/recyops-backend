@@ -1,0 +1,36 @@
+meta {
+  name: Crear Material
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/api/materiales
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "PET cristal post-consumo",
+    "categoriaCodigo": "PET",
+    "subcategoriaCodigo": "PET_BOTELLA",
+    "codigoResinaCodigo": "PET1",
+    "colorCodigo": "NATURAL",
+    "unidadMedida": "KILOGRAMO",
+    "unidadEmpaque": "PACA",
+    "precioBase": 1500,
+    "factorCalidad": 1.0,
+    "umbralMerma": 0.05
+  }
+}
+
+docs {
+  Los clasificadores llegan por codigo (ver /categorias, /subcategorias, /resinas, /colores).
+  unidadMedida: KILOGRAMO | TONELADA | UNIDAD
+  unidadEmpaque: GRANEL | PACA
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Listar Inventario
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/inventario?bodegaId=uuid-de-la-bodega
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  bodegaId: uuid-de-la-bodega
+  ~tipoMaterialId: uuid-del-material
+  ~bajoMinimo: true
+  page: 0
+  size: 20
+}
+
+docs {
+  bodegaId es obligatorio.
+}

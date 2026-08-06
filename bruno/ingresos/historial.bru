@@ -1,0 +1,27 @@
+meta {
+  name: Historial de Ingresos
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/ingresos
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~fechaDesde: 2026-01-01
+  ~fechaHasta: 2026-12-31
+  page: 0
+  size: 20
+}
+
+docs {
+  Solo rol ADMIN. Respuesta paginada (RespuestaPagina): content, totalElements, totalPages, etc.
+  size maximo: 100.
+}
