@@ -283,6 +283,28 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<!-- Reporte de cobertura de los tests unitarios (mvn test genera
+				     target/site/jacoco/index.html). No se ata a ninguna fase que
+				     corra Testcontainers, asi que "mvn test" sigue siendo rapido. -->
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
