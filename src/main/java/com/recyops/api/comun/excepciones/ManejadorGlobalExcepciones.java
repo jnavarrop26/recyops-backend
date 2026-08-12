@@ -5,15 +5,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Traduce las excepciones de todos los modulos al cuerpo {@link ErrorApi}.
@@ -66,6 +70,46 @@ public class ManejadorGlobalExcepciones {
                 ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(ErrorApi.de(400, "Validacion fallida", ex.getBody().getDetail(), peticion.getRequestURI()));
+    }
+
+    /**
+     * @Min/@Max u otras restricciones en @RequestParam/@PathVariable cuando el
+     * controlador esta ademas anotado con @Validated (p. ej. TareaController): en
+     * ese caso, spring.validation.method.adapt-constraint-violations=true hace que
+     * MethodValidationInterceptor (AOP, no MVC) adapte la violacion a esta clase
+     * base en vez de a HandlerMethodValidationException, que solo llega por la ruta
+     * nativa de Spring MVC (sin @Validated en la clase). Cubre ambos casos porque
+     * HandlerMethodValidationException hereda de esta.
+     */
+    @ExceptionHandler(MethodValidationException.class)
+    public ResponseEntity<ErrorApi> manejarValidacionMetodo(MethodValidationException ex,
+            HttpServletRequest peticion) {
+        String detalle = ex.getAllErrors().stream()
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining("; "));
+        log.warn("Parametro invalido en {} {} -> {}", peticion.getMethod(), peticion.getRequestURI(), detalle);
+        return ResponseEntity.badRequest()
+                .body(ErrorApi.de(400, "Validacion fallida", detalle, peticion.getRequestURI()));
+    }
+
+    /** Un enum/UUID/etc invalido en @RequestParam o @PathVariable (p. ej. ?valor=NO_EXISTE). */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorApi> manejarTipoInvalido(MethodArgumentTypeMismatchException ex,
+            HttpServletRequest peticion) {
+        String detalle = ex.getName() + ": valor invalido '" + ex.getValue() + "'";
+        log.warn("Parametro invalido en {} {} -> {}", peticion.getMethod(), peticion.getRequestURI(), detalle);
+        return ResponseEntity.badRequest()
+                .body(ErrorApi.de(400, "Validacion fallida", detalle, peticion.getRequestURI()));
+    }
+
+    /** Falta un @RequestParam obligatorio (sin defaultValue), p. ej. ?bodegaId=. */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorApi> manejarParametroFaltante(MissingServletRequestParameterException ex,
+            HttpServletRequest peticion) {
+        log.warn("Parametro faltante en {} {} -> {}", peticion.getMethod(), peticion.getRequestURI(),
+                ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ErrorApi.de(400, "Validacion fallida", ex.getMessage(), peticion.getRequestURI()));
     }
 
     /** Rechazos de @PreAuthorize (p. ej. un operario pidiendo recursos de admin). */
