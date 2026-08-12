@@ -48,6 +48,15 @@ spring:
           # Supabase firma los access token con ES256 (curva P-256)
           jws-algorithms: ES256
 
+  validation:
+    method:
+      # Sin esto, @EnableMethodSecurity + @Validated en el controlador hacen que
+      # el MethodValidationPostProcessor autoconfigurado valide via AOP y lance
+      # ConstraintViolationException cruda (no la HandlerMethodValidationException
+      # nativa que ManejadorGlobalExcepciones espera), y un @Min/@Max invalido en
+      # query params termina en 500 en vez de 400.
+      adapt-constraint-violations: true
+
 supabase:
   url: ${SUPABASE_URL}
   anon-key: ${SUPABASE_ANON_KEY}
