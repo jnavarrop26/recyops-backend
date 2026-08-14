@@ -1,5 +1,7 @@
 
-
+<p align="center">
+  <img src="logo-repo-recyops.svg" alt="RecyOps" width="420">
+</p>
 
 <!-- Núcleo -->
 [![Made with Java](https://forthebadge.com/images/badges/made-with-java.svg)](https://openjdk.org/projects/jdk/21/)
@@ -29,5 +31,3 @@
 <!-- Los divertidos de ForTheBadge para cerrar el README -->
 [![Uses Git](https://forthebadge.com/images/badges/uses-git.svg)](https://git-scm.com/)
 [![Built with love](https://forthebadge.com/images/badges/built-with-love.svg)](https://github.com/)
-[![Powered by coffee](https://forthebadge.com/images/badges/powered-by-coffee.svg)](https://forthebadge.com/)
-[![Works on my machine](https://forthebadge.com/images/badges/works-on-my-machine.svg)](https://forthebadge.com/)
