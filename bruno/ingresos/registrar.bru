@@ -18,21 +18,21 @@ body:json {
   {
     "cliente": "Recicladora El Progreso",
     "cedula": "1023456789",
-    "bodegaDestino": "Bodega Central",
+    "bodegaDestinoId": "{{bodega_id}}",
     "encargado": "Maria Lopez",
     "placaVehiculo": "ABC123",
     "pesoNetoTotal": 320.5,
     "total": 480750,
     "materiales": [
       {
-        "categoria": "PET",
+        "materialId": "{{material_id_pet}}",
         "pesoBruto": 180.0,
         "tara": 5.0,
         "precioKilo": 1500,
         "observaciones": "Botellas limpias"
       },
       {
-        "categoria": "CARTON",
+        "materialId": "{{material_id_carton}}",
         "pesoBruto": 150.5,
         "tara": 5.0,
         "precioKilo": 800,
@@ -43,5 +43,9 @@ body:json {
 }
 
 docs {
-  Si llega la lista de materiales, el backend recalcula los totales desde ella.
+  Los totales siempre se recalculan desde los materiales. `bodegaDestinoId` y
+  `materialId` (por cada material) son obligatorios: cada material registrado
+  suma stock a esa bodega vía InventarioService.registrarEntrada — el
+  inventario depende estrictamente de los ingresos, así que ambos IDs deben
+  existir de verdad (GET /api/bodegas, GET /api/materiales).
 }

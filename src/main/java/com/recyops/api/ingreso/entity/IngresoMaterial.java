@@ -1,5 +1,6 @@
 package com.recyops.api.ingreso.entity;
 
+import com.recyops.api.bodega.entity.Bodega;
 import com.recyops.api.ingreso.enums.EstadoIngreso;
 import com.recyops.api.ingreso.enums.EstadoPago;
 import com.recyops.api.ingreso.enums.MetodoPago;
@@ -8,9 +9,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -60,8 +64,13 @@ public class IngresoMaterial {
     @Column(nullable = false)
     private String cedula;
 
-    @Column(name = "bodega_destino", nullable = false)
-    private String bodegaDestino;
+    /** Legado: ingresos anteriores a la FK de bodega, solo texto libre. */
+    @Column(name = "bodega_destino")
+    private String bodegaDestinoTexto;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bodega_destino_id")
+    private Bodega bodega;
 
     @Column(nullable = false)
     private String encargado;

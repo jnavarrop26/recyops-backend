@@ -8,13 +8,11 @@ import java.util.UUID;
 
 /**
  * Un material dentro del cuerpo de POST /api/ingresos.
- * Con materialId, la categoria y el precio se resuelven desde el catalogo
- * (el precio puede venir explicito si la operacion lo ajusta en bascula);
- * sin materialId, la categoria es obligatoria (compatibilidad con clientes viejos).
+ * La categoria y el precio base se resuelven desde el catalogo (el precio
+ * puede venir explicito si la operacion lo ajusta en bascula).
  */
 public record CuerpoDetalleIngreso(
-        UUID materialId,
-        String categoria,
+        @NotNull UUID materialId,
         @NotNull @Positive BigDecimal pesoBruto,
         @NotNull @PositiveOrZero BigDecimal tara,
         @PositiveOrZero BigDecimal precioKilo,

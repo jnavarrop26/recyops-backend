@@ -1,5 +1,8 @@
 package com.recyops.api.ingreso.service;
 
+import com.recyops.api.bodega.entity.Bodega;
+import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
+import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.comun.excepciones.ReglaNegocioException;
 import com.recyops.api.ingreso.dtos.CuerpoDetalleIngreso;
@@ -14,6 +17,7 @@ import com.recyops.api.comun.log.LogTransaccional;
 import com.recyops.api.ingreso.excepciones.IngresoNoEncontradoException;
 import com.recyops.api.ingreso.interfaces.IngresoService;
 import com.recyops.api.ingreso.repository.IngresoMaterialRepository;
+import com.recyops.api.inventario.interfaces.InventarioService;
 import com.recyops.api.material.entity.Material;
 import com.recyops.api.material.excepciones.MaterialNoEncontradoException;
 import com.recyops.api.material.repository.MaterialRepository;
@@ -32,11 +36,17 @@ public class IngresoServiceImpl implements IngresoService {
 
     private final IngresoMaterialRepository ingresoRepository;
     private final MaterialRepository materialRepository;
+    private final BodegaRepository bodegaRepository;
+    private final InventarioService inventarioService;
 
     public IngresoServiceImpl(IngresoMaterialRepository ingresoRepository,
-            MaterialRepository materialRepository) {
+            MaterialRepository materialRepository,
+            BodegaRepository bodegaRepository,
+            InventarioService inventarioService) {
         this.ingresoRepository = ingresoRepository;
         this.materialRepository = materialRepository;
+        this.bodegaRepository = bodegaRepository;
+        this.inventarioService = inventarioService;
     }
 
     @Override
@@ -68,31 +78,41 @@ public class IngresoServiceImpl implements IngresoService {
     @Override
     @LogTransaccional(operacion = "INGRESO_REGISTRADO")
     public RespuestaIngreso registrar(CuerpoIngreso cuerpo) {
+        Bodega bodega = bodegaRepository.findById(cuerpo.bodegaDestinoId())
+                .orElseThrow(() -> new BodegaNoEncontradaException(cuerpo.bodegaDestinoId()));
+
         IngresoMaterial ingreso = IngresoMaterial.builder()
                 .cliente(cuerpo.cliente())
                 .cedula(cuerpo.cedula())
-                .bodegaDestino(cuerpo.bodegaDestino())
+                .bodega(bodega)
                 .encargado(cuerpo.encargado())
                 .placaVehiculo(cuerpo.placaVehiculo())
                 .pesoNetoTotal(cuerpo.pesoNetoTotal())
                 .total(cuerpo.total())
                 .build();
 
-        // Con detalle de materiales, los totales autoritativos se calculan aqui.
-        if (cuerpo.materiales() != null && !cuerpo.materiales().isEmpty()) {
-            BigDecimal pesoTotal = BigDecimal.ZERO;
-            BigDecimal valorTotal = BigDecimal.ZERO;
-            for (CuerpoDetalleIngreso material : cuerpo.materiales()) {
-                DetalleIngreso detalle = construirDetalle(ingreso, material);
-                ingreso.getDetalles().add(detalle);
-                pesoTotal = pesoTotal.add(detalle.getPesoNeto());
-                valorTotal = valorTotal.add(detalle.getSubtotal());
-            }
-            ingreso.setPesoNetoTotal(pesoTotal);
-            ingreso.setTotal(valorTotal);
+        // Los totales autoritativos siempre se calculan desde los materiales.
+        BigDecimal pesoTotal = BigDecimal.ZERO;
+        BigDecimal valorTotal = BigDecimal.ZERO;
+        for (CuerpoDetalleIngreso material : cuerpo.materiales()) {
+            DetalleIngreso detalle = construirDetalle(ingreso, material);
+            ingreso.getDetalles().add(detalle);
+            pesoTotal = pesoTotal.add(detalle.getPesoNeto());
+            valorTotal = valorTotal.add(detalle.getSubtotal());
+        }
+        ingreso.setPesoNetoTotal(pesoTotal);
+        ingreso.setTotal(valorTotal);
+
+        IngresoMaterial guardado = ingresoRepository.save(ingreso);
+
+        // El inventario de la bodega destino depende estrictamente de los ingresos:
+        // cada material que entra por bascula suma stock, un ENTRADA por detalle.
+        for (DetalleIngreso detalle : guardado.getDetalles()) {
+            inventarioService.registrarEntrada(bodega.getId(), detalle.getMaterial().getId(),
+                    detalle.getPesoNeto(), "Ingreso #" + guardado.getId());
         }
 
-        return RespuestaIngreso.conDetalles(ingresoRepository.save(ingreso));
+        return RespuestaIngreso.conDetalles(guardado);
     }
 
     @Override
@@ -132,30 +152,21 @@ public class IngresoServiceImpl implements IngresoService {
     }
 
     private DetalleIngreso construirDetalle(IngresoMaterial ingreso, CuerpoDetalleIngreso cuerpo) {
-        // Con materialId, la categoria y el precio salen del catalogo de la empresa;
-        // sin el, se conserva el flujo viejo de texto libre y precio digitado.
-        Material material = cuerpo.materialId() != null
-                ? materialRepository.findById(cuerpo.materialId())
-                        .orElseThrow(() -> new MaterialNoEncontradoException(cuerpo.materialId()))
-                : null;
+        // La categoria y el precio base salen siempre del catalogo de la empresa.
+        Material material = materialRepository.findById(cuerpo.materialId())
+                .orElseThrow(() -> new MaterialNoEncontradoException(cuerpo.materialId()));
 
-        String categoria = material != null ? material.getNombre() : cuerpo.categoria();
-        if (categoria == null || categoria.isBlank()) {
-            throw new ReglaNegocioException("Cada material del ingreso requiere materialId o categoria");
-        }
-        BigDecimal precioKilo = cuerpo.precioKilo() != null
-                ? cuerpo.precioKilo()
-                : material != null ? material.getPrecioBase() : null;
+        BigDecimal precioKilo = cuerpo.precioKilo() != null ? cuerpo.precioKilo() : material.getPrecioBase();
         if (precioKilo == null) {
             throw new ReglaNegocioException(
-                    "El material '" + categoria + "' requiere precio por kilo (explicito o del catalogo)");
+                    "El material '" + material.getNombre() + "' requiere precio por kilo (explicito o del catalogo)");
         }
 
         BigDecimal pesoNeto = cuerpo.pesoBruto().subtract(cuerpo.tara()).max(BigDecimal.ZERO);
         return DetalleIngreso.builder()
                 .ingreso(ingreso)
                 .material(material)
-                .categoria(categoria)
+                .categoria(material.getNombre())
                 .pesoBruto(cuerpo.pesoBruto())
                 .tara(cuerpo.tara())
                 .pesoNeto(pesoNeto)

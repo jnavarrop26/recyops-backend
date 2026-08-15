@@ -44,7 +44,7 @@ public record RespuestaIngreso(
                 ingreso.getFecha(),
                 ingreso.getCliente(),
                 ingreso.getCedula(),
-                ingreso.getBodegaDestino(),
+                ingreso.getBodega() != null ? ingreso.getBodega().getNombre() : ingreso.getBodegaDestinoTexto(),
                 ingreso.getEncargado(),
                 ingreso.getPlacaVehiculo(),
                 ingreso.getPesoNetoTotal(),
