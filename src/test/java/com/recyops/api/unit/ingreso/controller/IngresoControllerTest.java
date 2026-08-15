@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.config.FiltroRateLimit;
 import com.recyops.api.ingreso.controller.IngresoController;
+import com.recyops.api.ingreso.dtos.CuerpoDetalleIngreso;
 import com.recyops.api.ingreso.dtos.CuerpoIngreso;
 import com.recyops.api.ingreso.dtos.CuerpoPago;
 import com.recyops.api.ingreso.dtos.RespuestaIngreso;
@@ -133,8 +134,8 @@ class IngresoControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_OPERARIO")
     void registrar_cuerpoValido_devuelveCreated() throws Exception {
-        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", "Bodega Norte", "Encargado",
-                "ABC123", BigDecimal.TEN, BigDecimal.valueOf(50000), null);
+        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", UUID.randomUUID(), "Encargado",
+                "ABC123", BigDecimal.TEN, BigDecimal.valueOf(50000), List.of(detalleValido()));
         when(ingresoService.registrar(any(CuerpoIngreso.class))).thenReturn(crearRespuesta(1L));
 
         mockMvc.perform(post("/api/ingresos")
@@ -146,8 +147,8 @@ class IngresoControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_OPERARIO")
     void registrar_clienteEnBlanco_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoIngreso("", "123456789", "Bodega Norte", "Encargado",
-                null, BigDecimal.TEN, BigDecimal.valueOf(50000), null);
+        var cuerpo = new CuerpoIngreso("", "123456789", UUID.randomUUID(), "Encargado",
+                null, BigDecimal.TEN, BigDecimal.valueOf(50000), List.of(detalleValido()));
 
         mockMvc.perform(post("/api/ingresos")
                         .contentType("application/json")
@@ -160,13 +161,57 @@ class IngresoControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_OPERARIO")
     void registrar_pesoNoPositivo_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", "Bodega Norte", "Encargado",
-                null, BigDecimal.ZERO, BigDecimal.valueOf(50000), null);
+        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", UUID.randomUUID(), "Encargado",
+                null, BigDecimal.ZERO, BigDecimal.valueOf(50000), List.of(detalleValido()));
 
         mockMvc.perform(post("/api/ingresos")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(cuerpo)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERARIO")
+    void registrar_bodegaDestinoIdNulo_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", null, "Encargado",
+                null, BigDecimal.TEN, BigDecimal.valueOf(50000), List.of(detalleValido()));
+
+        mockMvc.perform(post("/api/ingresos")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(cuerpo)))
+                .andExpect(status().isBadRequest());
+
+        verify(ingresoService, never()).registrar(any());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERARIO")
+    void registrar_materialesVacio_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", UUID.randomUUID(), "Encargado",
+                null, BigDecimal.TEN, BigDecimal.valueOf(50000), List.of());
+
+        mockMvc.perform(post("/api/ingresos")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(cuerpo)))
+                .andExpect(status().isBadRequest());
+
+        verify(ingresoService, never()).registrar(any());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERARIO")
+    void registrar_detalleSinMaterialId_devuelveBadRequest() throws Exception {
+        var detalleSinMaterial = new CuerpoDetalleIngreso(null, BigDecimal.TEN, BigDecimal.ZERO,
+                BigDecimal.valueOf(1000), null);
+        var cuerpo = new CuerpoIngreso("Cliente Uno", "123456789", UUID.randomUUID(), "Encargado",
+                null, BigDecimal.TEN, BigDecimal.valueOf(50000), List.of(detalleSinMaterial));
+
+        mockMvc.perform(post("/api/ingresos")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(cuerpo)))
+                .andExpect(status().isBadRequest());
+
+        verify(ingresoService, never()).registrar(any());
     }
 
     // ---------- registrarPago ----------
@@ -247,6 +292,11 @@ class IngresoControllerTest {
     }
 
     // ---------- helpers ----------
+
+    private CuerpoDetalleIngreso detalleValido() {
+        return new CuerpoDetalleIngreso(UUID.randomUUID(), BigDecimal.TEN, BigDecimal.ZERO,
+                BigDecimal.valueOf(1000), null);
+    }
 
     private RespuestaIngreso crearRespuesta(Long id) {
         return new RespuestaIngreso(id, UUID.randomUUID(), LocalDateTime.now(), "Cliente Uno", "123456789",
