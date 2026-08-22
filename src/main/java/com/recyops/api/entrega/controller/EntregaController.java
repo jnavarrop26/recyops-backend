@@ -42,13 +42,13 @@ public class EntregaController {
     @GetMapping
     public RespuestaPagina<RespuestaEntrega> listar(
             @RequestParam(required = false) UUID bodegaId,
-            @RequestParam(required = false) UUID proveedorId,
+            @RequestParam(required = false) UUID convenioId,
             @RequestParam(required = false) EstadoEntrega estado,
             @RequestParam(required = false) LocalDate fechaDesde,
             @RequestParam(required = false) LocalDate fechaHasta,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return entregaService.listar(bodegaId, proveedorId, estado, fechaDesde, fechaHasta, page, size);
+        return entregaService.listar(bodegaId, convenioId, estado, fechaDesde, fechaHasta, page, size);
     }
 
     @GetMapping("/{id}")

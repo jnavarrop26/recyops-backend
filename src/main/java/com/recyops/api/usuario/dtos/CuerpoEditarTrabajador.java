@@ -10,6 +10,7 @@ import java.util.UUID;
  */
 public record CuerpoEditarTrabajador(
         @NotBlank String nombreCompleto,
+        @NotBlank String cedula,
         String telefono,
         @NotNull UUID bodegaId,
         @NotNull UUID rolId) {

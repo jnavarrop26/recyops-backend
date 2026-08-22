@@ -17,10 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Opcion de catalogo (categoria, subcategoria, resina o color).
- * Las subcategorias referencian el codigo de su categoria padre.
- */
+/** Opcion de catalogo (categoria, resina o color). */
 @Entity
 @Table(name = "opciones_catalogo", uniqueConstraints = @UniqueConstraint(columnNames = { "tipo", "codigo" }))
 @Getter
@@ -47,8 +44,4 @@ public class OpcionCatalogo {
     /** Solo aplica a resinas (frontend: esTermoplastico). */
     @Column(name = "es_termoplastico")
     private Boolean esTermoplastico;
-
-    /** Codigo de la categoria padre; solo aplica a subcategorias. */
-    @Column(name = "categoria_padre_codigo")
-    private String categoriaPadreCodigo;
 }

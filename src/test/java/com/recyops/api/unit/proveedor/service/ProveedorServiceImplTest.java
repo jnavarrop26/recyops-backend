@@ -10,13 +10,11 @@ import com.recyops.api.comun.dtos.RespuestaPagina;
 import com.recyops.api.entrega.entity.Entrega;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import com.recyops.api.entrega.repository.EntregaRepository;
-import com.recyops.api.material.entity.Material;
 import com.recyops.api.proveedor.dtos.CuerpoProveedor;
 import com.recyops.api.proveedor.dtos.RespuestaEntregaProveedor;
 import com.recyops.api.proveedor.dtos.RespuestaProveedor;
 import com.recyops.api.proveedor.entity.Proveedor;
 import com.recyops.api.proveedor.enums.EstadoProveedor;
-import com.recyops.api.proveedor.excepciones.CalificacionInvalidaException;
 import com.recyops.api.proveedor.excepciones.ProveedorNoEncontradoException;
 import com.recyops.api.proveedor.repository.ProveedorRepository;
 import com.recyops.api.proveedor.service.ProveedorServiceImpl;
@@ -54,17 +52,15 @@ class ProveedorServiceImplTest {
                 .id(UUID.randomUUID())
                 .nombre("Proveedor Norte")
                 .nit("900111000")
-                .calificacion(BigDecimal.valueOf(4.0))
                 .estado(EstadoProveedor.ACTIVO)
                 .build();
         Page<Proveedor> pagina = new PageImpl<>(List.of(proveedor), PageRequest.of(0, 20), 1);
-        when(proveedorRepository.buscar(eq(EstadoProveedor.ACTIVO), eq("Norte"), eq(BigDecimal.valueOf(3.0)),
-                any(PageRequest.class)))
+        when(proveedorRepository.buscar(eq(EstadoProveedor.ACTIVO), eq("Norte"), any(PageRequest.class)))
                 .thenReturn(pagina);
 
         // When
         RespuestaPagina<RespuestaProveedor> actualResultado =
-                proveedorService.listar(EstadoProveedor.ACTIVO, "Norte", BigDecimal.valueOf(3.0), 0, 20);
+                proveedorService.listar(EstadoProveedor.ACTIVO, "Norte", 0, 20);
 
         // Then
         assertThat(actualResultado.content()).hasSize(1);
@@ -102,7 +98,6 @@ class ProveedorServiceImplTest {
                 .id(id)
                 .nombre("Nombre Viejo")
                 .nit("900000111")
-                .calificacion(BigDecimal.ZERO)
                 .estado(EstadoProveedor.ACTIVO)
                 .build();
         when(proveedorRepository.findById(id)).thenReturn(Optional.of(proveedorExistente));
@@ -137,7 +132,6 @@ class ProveedorServiceImplTest {
                 .id(id)
                 .nombre("Proveedor Central")
                 .nit("900444555")
-                .calificacion(BigDecimal.ZERO)
                 .estado(EstadoProveedor.ACTIVO)
                 .build();
         when(proveedorRepository.findById(id)).thenReturn(Optional.of(proveedorExistente));
@@ -150,36 +144,6 @@ class ProveedorServiceImplTest {
     }
 
     @Test
-    void calificar_valorValido_actualizaCalificacionYRetornaProveedor() {
-        // Given
-        UUID id = UUID.randomUUID();
-        var proveedorExistente = Proveedor.builder()
-                .id(id)
-                .nombre("Proveedor Calificado")
-                .nit("900666777")
-                .calificacion(BigDecimal.ZERO)
-                .estado(EstadoProveedor.ACTIVO)
-                .build();
-        when(proveedorRepository.findById(id)).thenReturn(Optional.of(proveedorExistente));
-
-        // When
-        RespuestaProveedor actualRespuesta = proveedorService.calificar(id, 4.5);
-
-        // Then
-        assertThat(actualRespuesta.calificacion()).isEqualByComparingTo(BigDecimal.valueOf(4.5));
-    }
-
-    @Test
-    void calificar_valorFueraDeRango_lanzaCalificacionInvalidaException() {
-        // Given
-        UUID id = UUID.randomUUID();
-
-        // When-Then
-        assertThatThrownBy(() -> proveedorService.calificar(id, -1.0))
-                .isInstanceOf(CalificacionInvalidaException.class);
-    }
-
-    @Test
     void entregas_idExistente_retornaListaDeEntregasDelProveedor() {
         // Given
         UUID id = UUID.randomUUID();
@@ -187,26 +151,23 @@ class ProveedorServiceImplTest {
                 .id(id)
                 .nombre("Proveedor con Entregas")
                 .nit("900888999")
-                .calificacion(BigDecimal.ZERO)
                 .estado(EstadoProveedor.ACTIVO)
                 .build();
         when(proveedorRepository.findById(id)).thenReturn(Optional.of(proveedorExistente));
-        var material = Material.builder().nombre("PET").build();
         var entrega = Entrega.builder()
                 .id(UUID.randomUUID())
                 .codigo("ENT-000001")
-                .tipoMaterial(material)
-                .pesoKg(BigDecimal.valueOf(120))
+                .totalKg(BigDecimal.valueOf(120))
                 .estado(EstadoEntrega.RECIBIDA)
                 .fechaRecepcion(LocalDateTime.of(2026, 1, 15, 10, 0))
                 .build();
-        when(entregaRepository.findByProveedorIdOrderByFechaRecepcionDesc(id)).thenReturn(List.of(entrega));
+        when(entregaRepository.findByConvenioProveedorIdOrderByFechaRecepcionDesc(id)).thenReturn(List.of(entrega));
 
         // When
         List<RespuestaEntregaProveedor> actualEntregas = proveedorService.entregas(id);
 
         // Then
         assertThat(actualEntregas).hasSize(1);
-        assertThat(actualEntregas.get(0).tipoMaterialNombre()).isEqualTo("PET");
+        assertThat(actualEntregas.get(0).totalKg()).isEqualByComparingTo("120");
     }
 }

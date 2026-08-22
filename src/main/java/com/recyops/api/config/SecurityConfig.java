@@ -57,8 +57,7 @@ public class SecurityConfig {
                         // (bodegas y materiales alimentan el formulario de ingreso)
                         .requestMatchers(HttpMethod.GET, "/api/bodegas").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/materiales", "/api/materiales/categorias",
-                                "/api/materiales/subcategorias", "/api/materiales/resinas",
-                                "/api/materiales/colores").authenticated()
+                                "/api/materiales/resinas", "/api/materiales/colores").authenticated()
 
                         // Todo lo demas de catalogos y modulos administrativos: solo ADMIN.
                         // La UI ya lo esconde (RutaAdmin), pero la regla real vive aqui.

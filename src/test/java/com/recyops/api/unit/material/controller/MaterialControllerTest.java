@@ -101,7 +101,7 @@ class MaterialControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // ---------- categorias / subcategorias / resinas / colores ----------
+    // ---------- categorias / resinas / colores ----------
 
     @Test
     void categorias_devuelveOk() throws Exception {
@@ -110,23 +110,6 @@ class MaterialControllerTest {
         mockMvc.perform(get("/api/materiales/categorias"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].codigo").value("PLASTICO"));
-    }
-
-    @Test
-    void subcategorias_categoriaDada_lapasaAlServicio() throws Exception {
-        when(materialService.listarSubcategorias("PLASTICO")).thenReturn(List.of(crearRespuestaOpcion()));
-
-        mockMvc.perform(get("/api/materiales/subcategorias").param("categoria", "PLASTICO"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value("PLASTICO"));
-    }
-
-    @Test
-    void subcategorias_sinCategoria_devuelveBadRequest() throws Exception {
-        mockMvc.perform(get("/api/materiales/subcategorias"))
-                .andExpect(status().isBadRequest());
-
-        verify(materialService, never()).listarSubcategorias(any());
     }
 
     @Test
@@ -163,7 +146,7 @@ class MaterialControllerTest {
 
     @Test
     void crear_nombreEnBlanco_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoMaterial("", "PLASTICO", null, null, null, UnidadMedida.KILOGRAMO,
+        var cuerpo = new CuerpoMaterial("", "PLASTICO", null, null, UnidadMedida.KILOGRAMO,
                 UnidadEmpaque.PACA, BigDecimal.TEN, BigDecimal.ONE, null);
 
         mockMvc.perform(post("/api/materiales")
@@ -176,7 +159,7 @@ class MaterialControllerTest {
 
     @Test
     void crear_categoriaCodigoEnBlanco_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoMaterial("PET Transparente", "", null, null, null, UnidadMedida.KILOGRAMO,
+        var cuerpo = new CuerpoMaterial("PET Transparente", "", null, null, UnidadMedida.KILOGRAMO,
                 UnidadEmpaque.PACA, BigDecimal.TEN, BigDecimal.ONE, null);
 
         mockMvc.perform(post("/api/materiales")
@@ -187,7 +170,7 @@ class MaterialControllerTest {
 
     @Test
     void crear_precioBaseNoPositivo_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, null, UnidadMedida.KILOGRAMO,
+        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, UnidadMedida.KILOGRAMO,
                 UnidadEmpaque.PACA, BigDecimal.ZERO, BigDecimal.ONE, null);
 
         mockMvc.perform(post("/api/materiales")
@@ -198,7 +181,7 @@ class MaterialControllerTest {
 
     @Test
     void crear_unidadMedidaNula_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, null, null,
+        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, null,
                 UnidadEmpaque.PACA, BigDecimal.TEN, BigDecimal.ONE, null);
 
         mockMvc.perform(post("/api/materiales")
@@ -250,7 +233,7 @@ class MaterialControllerTest {
     @Test
     void actualizar_factorCalidadNulo_devuelveBadRequest() throws Exception {
         var id = UUID.randomUUID();
-        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, null, UnidadMedida.KILOGRAMO,
+        var cuerpo = new CuerpoMaterial("PET Transparente", "PLASTICO", null, null, UnidadMedida.KILOGRAMO,
                 UnidadEmpaque.PACA, BigDecimal.TEN, null, null);
 
         mockMvc.perform(put("/api/materiales/{id}", id)
@@ -305,12 +288,12 @@ class MaterialControllerTest {
     // ---------- helpers ----------
 
     private CuerpoMaterial crearCuerpoMaterial() {
-        return new CuerpoMaterial("PET Transparente", "PLASTICO", "PET", "TRANSPARENTE", "TRANSPARENTE",
+        return new CuerpoMaterial("PET Transparente", "PLASTICO", "PET", "TRANSPARENTE",
                 UnidadMedida.KILOGRAMO, UnidadEmpaque.PACA, BigDecimal.TEN, BigDecimal.ONE, BigDecimal.valueOf(5));
     }
 
     private RespuestaMaterial crearRespuestaMaterial() {
-        return new RespuestaMaterial(UUID.randomUUID(), "PET Transparente", "PLASTICO", "Plasticos", "PET", "PET",
+        return new RespuestaMaterial(UUID.randomUUID(), "PET Transparente", "PLASTICO", "Plasticos",
                 "PET", "PET", "TRANSPARENTE", "Transparente", "KILOGRAMO", "PACA", BigDecimal.TEN, BigDecimal.ONE,
                 BigDecimal.valueOf(5), true, LocalDateTime.now());
     }

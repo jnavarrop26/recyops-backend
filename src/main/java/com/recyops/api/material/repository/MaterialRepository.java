@@ -11,16 +11,15 @@ import org.springframework.data.repository.query.Param;
 public interface MaterialRepository extends JpaRepository<Material, UUID> {
 
     /**
-     * Las cuatro opciones de catalogo vienen resueltas ({@code RespuestaMaterial}
+     * Las tres opciones de catalogo vienen resueltas ({@code RespuestaMaterial}
      * lee codigo y nombre de todas). Los joins son explicitos y con alias a
      * proposito: filtrar por {@code m.resina.codigo} obligaba a Hibernate a un
      * inner join implicito, que dejaba fuera del listado a los materiales sin
-     * resina, subcategoria o color aunque no se estuviera filtrando por ellos.
+     * resina o color aunque no se estuviera filtrando por ellos.
      */
     @Query(value = """
             select m from Material m
             join fetch m.categoria cat
-            left join fetch m.subcategoria
             left join fetch m.resina res
             left join fetch m.color col
             where (:categoria is null or cat.codigo = :categoria)

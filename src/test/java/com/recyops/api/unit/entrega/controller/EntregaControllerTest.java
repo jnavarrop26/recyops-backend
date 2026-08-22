@@ -20,6 +20,7 @@ import com.recyops.api.comun.excepciones.ReglaNegocioException;
 import com.recyops.api.config.FiltroRateLimit;
 import com.recyops.api.entrega.controller.EntregaController;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
+import com.recyops.api.entrega.dtos.CuerpoLineaEntrega;
 import com.recyops.api.entrega.dtos.RespuestaEntrega;
 import com.recyops.api.entrega.dtos.RespuestaRecibo;
 import com.recyops.api.entrega.enums.EstadoEntrega;
@@ -75,13 +76,13 @@ class EntregaControllerTest {
     @Test
     void listar_conFiltros_lospasaAlServicio() throws Exception {
         var bodegaId = UUID.randomUUID();
-        var proveedorId = UUID.randomUUID();
-        when(entregaService.listar(eq(bodegaId), eq(proveedorId), eq(EstadoEntrega.RECIBIDA), any(), any(),
+        var convenioId = UUID.randomUUID();
+        when(entregaService.listar(eq(bodegaId), eq(convenioId), eq(EstadoEntrega.RECIBIDA), any(), any(),
                 eq(1), eq(10))).thenReturn(new RespuestaPagina<>(List.of(), 0, 0, 1, 10));
 
         mockMvc.perform(get("/api/entregas")
                         .param("bodegaId", bodegaId.toString())
-                        .param("proveedorId", proveedorId.toString())
+                        .param("convenioId", convenioId.toString())
                         .param("estado", "RECIBIDA")
                         .param("fechaDesde", "2026-01-01")
                         .param("fechaHasta", "2026-01-31")
@@ -89,7 +90,7 @@ class EntregaControllerTest {
                         .param("size", "10"))
                 .andExpect(status().isOk());
 
-        verify(entregaService).listar(bodegaId, proveedorId, EstadoEntrega.RECIBIDA,
+        verify(entregaService).listar(bodegaId, convenioId, EstadoEntrega.RECIBIDA,
                 java.time.LocalDate.of(2026, 1, 1), java.time.LocalDate.of(2026, 1, 31), 1, 10);
     }
 
@@ -137,8 +138,7 @@ class EntregaControllerTest {
 
     @Test
     void registrar_cuerpoValido_devuelveCreated() throws Exception {
-        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                BigDecimal.TEN, "Juan Perez", null);
+        var cuerpo = crearCuerpoEntrega();
         when(entregaService.registrar(any(CuerpoEntrega.class))).thenReturn(crearRespuestaEntrega());
 
         mockMvc.perform(post("/api/entregas")
@@ -149,22 +149,22 @@ class EntregaControllerTest {
     }
 
     @Test
-    void registrar_proveedorIdNulo_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoEntrega(null, UUID.randomUUID(), UUID.randomUUID(), BigDecimal.TEN, null, null);
+    void registrar_convenioIdNulo_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoEntrega(null, UUID.randomUUID(), UUID.randomUUID(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), BigDecimal.TEN)));
 
         mockMvc.perform(post("/api/entregas")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(cuerpo)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.mensaje", containsString("proveedorId")));
+                .andExpect(jsonPath("$.mensaje", containsString("convenioId")));
 
         verify(entregaService, never()).registrar(any());
     }
 
     @Test
-    void registrar_pesoKgNoPositivo_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                BigDecimal.ZERO, null, null);
+    void registrar_sinLineas_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), null, List.of());
 
         mockMvc.perform(post("/api/entregas")
                         .contentType("application/json")
@@ -175,8 +175,22 @@ class EntregaControllerTest {
     }
 
     @Test
-    void registrar_pesoKgNulo_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), null, null, null);
+    void registrar_pesoKgDeUnaLineaNoPositivo_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), BigDecimal.ZERO)));
+
+        mockMvc.perform(post("/api/entregas")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(cuerpo)))
+                .andExpect(status().isBadRequest());
+
+        verify(entregaService, never()).registrar(any());
+    }
+
+    @Test
+    void registrar_personaEntregaIdNula_devuelveBadRequest() throws Exception {
+        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), null, null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), BigDecimal.TEN)));
 
         mockMvc.perform(post("/api/entregas")
                         .contentType("application/json")
@@ -283,9 +297,14 @@ class EntregaControllerTest {
 
     // ---------- helpers ----------
 
+    private CuerpoEntrega crearCuerpoEntrega() {
+        return new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                LocalDateTime.now(), List.of(new CuerpoLineaEntrega(UUID.randomUUID(), BigDecimal.TEN)));
+    }
+
     private RespuestaEntrega crearRespuestaEntrega() {
-        return new RespuestaEntrega(UUID.randomUUID(), "ENT-000001", UUID.randomUUID(), "Proveedor Uno",
-                UUID.randomUUID(), "Bodega Central", UUID.randomUUID(), "PET Transparente", BigDecimal.TEN,
-                "Juan Perez", EstadoEntrega.RECIBIDA, LocalDateTime.now(), "Admin Uno");
+        return new RespuestaEntrega(UUID.randomUUID(), "ENT-000001", UUID.randomUUID(), "Convenio Uno",
+                UUID.randomUUID(), "Bodega Central", UUID.randomUUID(), "Juan Perez", "123456789",
+                BigDecimal.TEN, EstadoEntrega.RECIBIDA, LocalDateTime.now(), "Admin Uno", List.of());
     }
 }

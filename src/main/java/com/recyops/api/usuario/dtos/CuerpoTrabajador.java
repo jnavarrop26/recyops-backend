@@ -11,6 +11,7 @@ public record CuerpoTrabajador(
         @NotBlank String nombreCompleto,
         @NotBlank String username,
         @NotBlank @Email String email,
+        @NotBlank String cedula,
         String telefono,
         @NotNull UUID bodegaId,
         @NotNull UUID rolId,

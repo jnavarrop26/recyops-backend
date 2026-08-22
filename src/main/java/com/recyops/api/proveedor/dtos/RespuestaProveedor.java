@@ -2,7 +2,6 @@ package com.recyops.api.proveedor.dtos;
 
 import com.recyops.api.proveedor.entity.Proveedor;
 import com.recyops.api.proveedor.enums.EstadoProveedor;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,7 +13,6 @@ public record RespuestaProveedor(
         String telefono,
         String email,
         String direccion,
-        BigDecimal calificacion,
         EstadoProveedor estado,
         LocalDateTime fechaCreacion) {
 
@@ -27,7 +25,6 @@ public record RespuestaProveedor(
                 proveedor.getTelefono(),
                 proveedor.getEmail(),
                 proveedor.getDireccion(),
-                proveedor.getCalificacion(),
                 proveedor.getEstado(),
                 proveedor.getFechaCreacion());
     }

@@ -11,7 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface IngresoMaterialRepository extends JpaRepository<IngresoMaterial, Long> {
+public interface
+IngresoMaterialRepository extends JpaRepository<IngresoMaterial, Long> {
 
     Optional<IngresoMaterial> findByUuid(UUID uuid);
 
@@ -43,3 +44,4 @@ public interface IngresoMaterialRepository extends JpaRepository<IngresoMaterial
             """, nativeQuery = true)
     List<Object[]> resumenDiario(@Param("desde") LocalDateTime desde);
 }
+

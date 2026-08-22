@@ -82,7 +82,7 @@ class UsuarioAdminControllerTest {
 
     @Test
     void registrar_cuerpoValido_devuelveCreated() throws Exception {
-        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", null,
+        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", "123456789", null,
                 UUID.randomUUID(), UUID.randomUUID(), null);
         var creado = new RespuestaTrabajadorCreado(UUID.randomUUID(), "juan.perez", "juan@test.com",
                 "ACTIVO", "temporal123");
@@ -97,7 +97,7 @@ class UsuarioAdminControllerTest {
 
     @Test
     void registrar_nombreEnBlanco_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoTrabajador("", "juan.perez", "juan@test.com", null,
+        var cuerpo = new CuerpoTrabajador("", "juan.perez", "juan@test.com", "123456789", null,
                 UUID.randomUUID(), UUID.randomUUID(), null);
 
         mockMvc.perform(post("/api/admin/usuarios")
@@ -110,7 +110,7 @@ class UsuarioAdminControllerTest {
 
     @Test
     void registrar_emailInvalido_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "no-es-un-email", null,
+        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "no-es-un-email", "123456789", null,
                 UUID.randomUUID(), UUID.randomUUID(), null);
 
         mockMvc.perform(post("/api/admin/usuarios")
@@ -121,7 +121,7 @@ class UsuarioAdminControllerTest {
 
     @Test
     void registrar_passwordCorta_devuelveBadRequest() throws Exception {
-        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", null,
+        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", "123456789", null,
                 UUID.randomUUID(), UUID.randomUUID(), "abc123");
 
         mockMvc.perform(post("/api/admin/usuarios")
@@ -132,7 +132,7 @@ class UsuarioAdminControllerTest {
 
     @Test
     void registrar_usernameDuplicado_devuelveConflict() throws Exception {
-        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", null,
+        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", "123456789", null,
                 UUID.randomUUID(), UUID.randomUUID(), null);
         when(usuarioService.registrarTrabajador(any(CuerpoTrabajador.class)))
                 .thenThrow(new UsuarioDuplicadoException("username", "juan.perez"));
@@ -146,7 +146,7 @@ class UsuarioAdminControllerTest {
     @Test
     void registrar_rolInexistente_devuelveNotFound() throws Exception {
         var rolId = UUID.randomUUID();
-        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", null,
+        var cuerpo = new CuerpoTrabajador("Juan Perez", "juan.perez", "juan@test.com", "123456789", null,
                 UUID.randomUUID(), rolId, null);
         when(usuarioService.registrarTrabajador(any(CuerpoTrabajador.class)))
                 .thenThrow(new RolNoEncontradoException(rolId));
@@ -162,7 +162,8 @@ class UsuarioAdminControllerTest {
     @Test
     void editar_cuerpoValido_devuelveOk() throws Exception {
         var id = UUID.randomUUID();
-        var cuerpo = new CuerpoEditarTrabajador("Juan Perez Editado", null, UUID.randomUUID(), UUID.randomUUID());
+        var cuerpo = new CuerpoEditarTrabajador("Juan Perez Editado", "123456789", null,
+                UUID.randomUUID(), UUID.randomUUID());
         when(usuarioService.editarTrabajador(eq(id), any(CuerpoEditarTrabajador.class)))
                 .thenReturn(crearRespuesta());
 
@@ -175,7 +176,8 @@ class UsuarioAdminControllerTest {
     @Test
     void editar_usuarioInexistente_devuelveNotFound() throws Exception {
         var id = UUID.randomUUID();
-        var cuerpo = new CuerpoEditarTrabajador("Juan Perez", null, UUID.randomUUID(), UUID.randomUUID());
+        var cuerpo = new CuerpoEditarTrabajador("Juan Perez", "123456789", null,
+                UUID.randomUUID(), UUID.randomUUID());
         when(usuarioService.editarTrabajador(eq(id), any(CuerpoEditarTrabajador.class)))
                 .thenThrow(new UsuarioNoEncontradoException(id));
 
@@ -188,7 +190,7 @@ class UsuarioAdminControllerTest {
     @Test
     void editar_bodegaIdNulo_devuelveBadRequest() throws Exception {
         var id = UUID.randomUUID();
-        var cuerpo = new CuerpoEditarTrabajador("Juan Perez", null, null, UUID.randomUUID());
+        var cuerpo = new CuerpoEditarTrabajador("Juan Perez", "123456789", null, null, UUID.randomUUID());
 
         mockMvc.perform(put("/api/admin/usuarios/{id}", id)
                         .contentType("application/json")
@@ -228,7 +230,7 @@ class UsuarioAdminControllerTest {
     // ---------- helpers ----------
 
     private RespuestaTrabajador crearRespuesta() {
-        return new RespuestaTrabajador(UUID.randomUUID(), "Juan Perez", "juan.perez", "juan@test.com", null,
-                "ACTIVO", UUID.randomUUID(), "OPERARIO", UUID.randomUUID(), "Bodega Norte");
+        return new RespuestaTrabajador(UUID.randomUUID(), "Juan Perez", "juan.perez", "juan@test.com",
+                "123456789", null, "ACTIVO", UUID.randomUUID(), "OPERARIO", UUID.randomUUID(), "Bodega Norte");
     }
 }

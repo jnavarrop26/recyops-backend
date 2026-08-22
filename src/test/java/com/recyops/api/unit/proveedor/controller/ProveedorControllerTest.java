@@ -20,7 +20,6 @@ import com.recyops.api.proveedor.dtos.CuerpoProveedor;
 import com.recyops.api.proveedor.dtos.RespuestaEntregaProveedor;
 import com.recyops.api.proveedor.dtos.RespuestaProveedor;
 import com.recyops.api.proveedor.enums.EstadoProveedor;
-import com.recyops.api.proveedor.excepciones.CalificacionInvalidaException;
 import com.recyops.api.proveedor.excepciones.ProveedorNoEncontradoException;
 import com.recyops.api.proveedor.interfaces.ProveedorService;
 import java.math.BigDecimal;
@@ -60,7 +59,7 @@ class ProveedorControllerTest {
     @Test
     void listar_sinParametros_devuelveOkConPagina() throws Exception {
         var respuesta = new RespuestaPagina<>(List.of(crearRespuestaProveedor()), 1, 1, 0, 20);
-        when(proveedorService.listar(null, null, null, 0, 20)).thenReturn(respuesta);
+        when(proveedorService.listar(null, null, 0, 20)).thenReturn(respuesta);
 
         mockMvc.perform(get("/api/proveedores"))
                 .andExpect(status().isOk())
@@ -70,16 +69,15 @@ class ProveedorControllerTest {
 
     @Test
     void listar_conFiltros_lospasaAlServicio() throws Exception {
-        when(proveedorService.listar(EstadoProveedor.ACTIVO, "Reciclajes SA", BigDecimal.valueOf(3.5), 0, 20))
+        when(proveedorService.listar(EstadoProveedor.ACTIVO, "Reciclajes SA", 0, 20))
                 .thenReturn(new RespuestaPagina<>(List.of(), 0, 0, 0, 20));
 
         mockMvc.perform(get("/api/proveedores")
                         .param("estado", "ACTIVO")
-                        .param("nombre", "Reciclajes SA")
-                        .param("calificacionMin", "3.5"))
+                        .param("nombre", "Reciclajes SA"))
                 .andExpect(status().isOk());
 
-        verify(proveedorService).listar(EstadoProveedor.ACTIVO, "Reciclajes SA", BigDecimal.valueOf(3.5), 0, 20);
+        verify(proveedorService).listar(EstadoProveedor.ACTIVO, "Reciclajes SA", 0, 20);
     }
 
     @Test
@@ -209,42 +207,12 @@ class ProveedorControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ---------- calificar ----------
-
-    @Test
-    void calificar_valorValido_devuelveOk() throws Exception {
-        var id = UUID.randomUUID();
-        when(proveedorService.calificar(id, 4.5)).thenReturn(crearRespuestaProveedor());
-
-        mockMvc.perform(patch("/api/proveedores/{id}/calificacion", id).param("valor", "4.5"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void calificar_valorFueraDeRango_devuelveBadRequest() throws Exception {
-        var id = UUID.randomUUID();
-        when(proveedorService.calificar(id, 7.0)).thenThrow(new CalificacionInvalidaException(7.0));
-
-        mockMvc.perform(patch("/api/proveedores/{id}/calificacion", id).param("valor", "7.0"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void calificar_valorNoNumerico_devuelveBadRequest() throws Exception {
-        var id = UUID.randomUUID();
-
-        mockMvc.perform(patch("/api/proveedores/{id}/calificacion", id).param("valor", "no-numero"))
-                .andExpect(status().isBadRequest());
-
-        verify(proveedorService, never()).calificar(any(), org.mockito.ArgumentMatchers.anyDouble());
-    }
-
     // ---------- entregas ----------
 
     @Test
     void entregas_proveedorExistente_devuelveOk() throws Exception {
         var id = UUID.randomUUID();
-        var entrega = new RespuestaEntregaProveedor(UUID.randomUUID(), "ENT-001", "PET", BigDecimal.TEN, "RECIBIDA",
+        var entrega = new RespuestaEntregaProveedor(UUID.randomUUID(), "ENT-001", BigDecimal.TEN, "RECIBIDA",
                 LocalDateTime.now());
         when(proveedorService.entregas(id)).thenReturn(List.of(entrega));
 
@@ -257,7 +225,7 @@ class ProveedorControllerTest {
 
     private RespuestaProveedor crearRespuestaProveedor() {
         return new RespuestaProveedor(UUID.randomUUID(), "Reciclajes SA", "900123456-1", "Juan Perez",
-                "3001234567", "contacto@reciclajes.com", "Calle 1 # 2-3", BigDecimal.valueOf(4.5),
+                "3001234567", "contacto@reciclajes.com", "Calle 1 # 2-3",
                 EstadoProveedor.ACTIVO, LocalDateTime.now());
     }
 }

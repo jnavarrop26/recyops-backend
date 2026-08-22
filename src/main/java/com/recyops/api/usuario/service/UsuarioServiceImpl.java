@@ -97,6 +97,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .nombreCompleto(cuerpo.nombreCompleto())
                 .username(cuerpo.username())
                 .email(cuerpo.email())
+                .cedula(cuerpo.cedula())
                 .telefono(cuerpo.telefono())
                 .rol(rol)
                 .bodega(bodega)
@@ -130,6 +131,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         usuario.setNombreCompleto(cuerpo.nombreCompleto());
+        usuario.setCedula(cuerpo.cedula());
         usuario.setTelefono(cuerpo.telefono());
         usuario.setRol(rol);
         usuario.setBodega(bodega);

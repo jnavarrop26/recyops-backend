@@ -11,8 +11,7 @@ import java.math.BigDecimal;
 public record CuerpoMaterial(
         @NotBlank String nombre,
         @NotBlank String categoriaCodigo,
-        String subcategoriaCodigo,
-        String codigoResinaCodigo,
+        String resinaCodigo,
         String colorCodigo,
         @NotNull UnidadMedida unidadMedida,
         @NotNull UnidadEmpaque unidadEmpaque,

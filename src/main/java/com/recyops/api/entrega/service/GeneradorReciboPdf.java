@@ -83,15 +83,30 @@ public class GeneradorReciboPdf {
     private Map<String, String> filasRecibo(Entrega entrega) {
         Map<String, String> filas = new LinkedHashMap<>();
         filas.put("Codigo", entrega.getCodigo());
-        filas.put("Proveedor", entrega.getProveedor().getNombre());
+        filas.put("Convenio", entrega.getConvenio() != null ? entrega.getConvenio().getNombre() : null);
         filas.put("Bodega", entrega.getBodega().getNombre());
-        filas.put("Tipo de material", entrega.getTipoMaterial().getNombre());
-        filas.put("Peso", entrega.getPesoKg().toPlainString() + " kg");
-        filas.put("Persona que entrega", entrega.getPersonaEntrega());
+        filas.put("Persona que entrega", nombrePersonaConCedula(entrega));
+        int numero = 1;
+        for (var linea : entrega.getLineas()) {
+            filas.put("Material " + numero, linea.getTipoMaterial().getNombre() + " - "
+                    + linea.getPesoKg().toPlainString() + " kg");
+            numero++;
+        }
+        filas.put("Total", entrega.getTotalKg().toPlainString() + " kg");
         filas.put("Estado", entrega.getEstado().name().replace('_', ' '));
         filas.put("Fecha de recepcion", entrega.getFechaRecepcion().format(FORMATO_FECHA));
         filas.put("Registrado por", entrega.getUsuarioRegistroNombre());
         return filas;
+    }
+
+    private String nombrePersonaConCedula(Entrega entrega) {
+        var persona = entrega.getPersonaEntrega();
+        if (persona == null) {
+            return null;
+        }
+        return persona.getCedula() != null
+                ? persona.getNombreCompleto() + " (CC " + persona.getCedula() + ")"
+                : persona.getNombreCompleto();
     }
 
     private void escribir(PDPageContentStream contenido, PDType1Font fuente, float tamano,

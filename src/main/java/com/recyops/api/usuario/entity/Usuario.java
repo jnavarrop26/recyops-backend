@@ -53,6 +53,9 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(unique = true)
+    private String cedula;
+
     private String telefono;
 
     @Builder.Default

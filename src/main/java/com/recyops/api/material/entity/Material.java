@@ -44,10 +44,6 @@ public class Material {
     private OpcionCatalogo categoria;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subcategoria_id")
-    private OpcionCatalogo subcategoria;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resina_id")
     private OpcionCatalogo resina;
 

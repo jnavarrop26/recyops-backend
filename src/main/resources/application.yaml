@@ -14,7 +14,13 @@ spring:
     username: ${SUPABASE_DB_USER}
     password: ${SUPABASE_DB_PASSWORD}
     hikari:
+      # El pooler de Supabase en modo Session tiene un tope duro de 15 clientes.
+      # minimum-idle bajo evita que el pool mantenga 10 conexiones en reposo
+      # todo el tiempo: eso, sumado a la conexion propia de Flyway
+      # (MigradorEsquemas) y al pool viejo que aun no cerro durante un
+      # restart de DevTools, ya tumbo el arranque con EMAXCONNSESSION.
       maximum-pool-size: 10
+      minimum-idle: 2
 
   flyway:
     # Apagada a proposito: la autoconfiguracion de Spring Boot migra UN solo

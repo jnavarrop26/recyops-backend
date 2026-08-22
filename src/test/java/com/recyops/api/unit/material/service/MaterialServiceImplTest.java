@@ -74,7 +74,7 @@ class MaterialServiceImplTest {
     @Test
     void crear_datosValidosSinClasificadoresOpcionales_creaYRetornaMaterial() {
         // Given
-        var cuerpo = new CuerpoMaterial("PET transparente", "PLASTICO", null, null, null,
+        var cuerpo = new CuerpoMaterial("PET transparente", "PLASTICO", null, null,
                 UnidadMedida.KILOGRAMO, UnidadEmpaque.GRANEL, new BigDecimal("1200.00"), BigDecimal.ONE, null);
         var categoriaOpcion = OpcionCatalogo.builder().tipo(TipoOpcionCatalogo.CATEGORIA)
                 .codigo("PLASTICO").nombre("Plastico").build();
@@ -92,7 +92,6 @@ class MaterialServiceImplTest {
         var materialGuardado = captorMaterial.getValue();
         assertThat(materialGuardado.getNombre()).isEqualTo("PET transparente");
         assertThat(materialGuardado.getCategoria()).isEqualTo(categoriaOpcion);
-        assertThat(materialGuardado.getSubcategoria()).isNull();
         assertThat(materialGuardado.getResina()).isNull();
         assertThat(materialGuardado.getColor()).isNull();
     }
@@ -100,7 +99,7 @@ class MaterialServiceImplTest {
     @Test
     void crear_categoriaInexistente_lanzaOpcionCatalogoNoEncontradaException() {
         // Given
-        var cuerpo = new CuerpoMaterial("PET transparente", "DESCONOCIDO", null, null, null,
+        var cuerpo = new CuerpoMaterial("PET transparente", "DESCONOCIDO", null, null,
                 UnidadMedida.KILOGRAMO, UnidadEmpaque.GRANEL, new BigDecimal("1200.00"), BigDecimal.ONE, null);
         when(catalogoRepository.findByTipoAndCodigo(TipoOpcionCatalogo.CATEGORIA, "DESCONOCIDO"))
                 .thenReturn(Optional.empty());
@@ -124,7 +123,7 @@ class MaterialServiceImplTest {
                 .codigo("PLASTICO").nombre("Plastico").build();
         when(catalogoRepository.findByTipoAndCodigo(TipoOpcionCatalogo.CATEGORIA, "PLASTICO"))
                 .thenReturn(Optional.of(categoriaOpcion));
-        var cuerpo = new CuerpoMaterial("PET verde", "PLASTICO", null, null, null,
+        var cuerpo = new CuerpoMaterial("PET verde", "PLASTICO", null, null,
                 UnidadMedida.TONELADA, UnidadEmpaque.PACA, new BigDecimal("1500.00"), new BigDecimal("0.9"), null);
 
         // When
@@ -141,7 +140,7 @@ class MaterialServiceImplTest {
         // Given
         var id = UUID.randomUUID();
         when(materialRepository.findById(id)).thenReturn(Optional.empty());
-        var cuerpo = new CuerpoMaterial("PET verde", "PLASTICO", null, null, null,
+        var cuerpo = new CuerpoMaterial("PET verde", "PLASTICO", null, null,
                 UnidadMedida.TONELADA, UnidadEmpaque.PACA, new BigDecimal("1500.00"), new BigDecimal("0.9"), null);
 
         // When-Then
@@ -193,21 +192,6 @@ class MaterialServiceImplTest {
         assertThat(actualLista).hasSize(1);
         assertThat(actualLista.get(0).codigo()).isEqualTo("PLASTICO");
         assertThat(actualLista.get(0).nombre()).isEqualTo("Plastico");
-    }
-
-    @Test
-    void listarSubcategorias_categoriaDada_retornaOpcionesDeEsaCategoria() {
-        // Given
-        var opcion = OpcionCatalogo.builder().codigo("PET").nombre("PET").build();
-        when(catalogoRepository.findByTipoAndCategoriaPadreCodigoOrderByNombre(
-                TipoOpcionCatalogo.SUBCATEGORIA, "PLASTICO")).thenReturn(List.of(opcion));
-
-        // When
-        var actualLista = materialService.listarSubcategorias("PLASTICO");
-
-        // Then
-        assertThat(actualLista).hasSize(1);
-        assertThat(actualLista.get(0).codigo()).isEqualTo("PET");
     }
 
     @Test

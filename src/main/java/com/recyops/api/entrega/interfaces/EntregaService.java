@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface EntregaService {
 
-    RespuestaPagina<RespuestaEntrega> listar(UUID bodegaId, UUID proveedorId, EstadoEntrega estado,
+    RespuestaPagina<RespuestaEntrega> listar(UUID bodegaId, UUID convenioId, EstadoEntrega estado,
             LocalDate fechaDesde, LocalDate fechaHasta, int page, int size);
 
     RespuestaEntrega obtener(UUID id);

@@ -52,11 +52,6 @@ public class MaterialController {
         return materialService.listarCategorias();
     }
 
-    @GetMapping("/subcategorias")
-    public List<RespuestaOpcionCatalogo> subcategorias(@RequestParam String categoria) {
-        return materialService.listarSubcategorias(categoria);
-    }
-
     @GetMapping("/resinas")
     public List<RespuestaOpcionCatalogo> resinas() {
         return materialService.listarResinas();

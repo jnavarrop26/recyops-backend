@@ -22,5 +22,5 @@ public record CuerpoIngreso(
         String placaVehiculo,
         @NotNull @Positive BigDecimal pesoNetoTotal,
         @NotNull @Positive BigDecimal total,
-        @NotEmpty @Valid List<CuerpoDetalleIngreso> materiales) {
+        @NotEmpty List<@Valid CuerpoDetalleIngreso> materiales) {
 }

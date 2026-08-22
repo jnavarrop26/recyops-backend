@@ -20,8 +20,6 @@ public interface MaterialService {
 
     List<RespuestaOpcionCatalogo> listarCategorias();
 
-    List<RespuestaOpcionCatalogo> listarSubcategorias(String categoria);
-
     List<RespuestaOpcionCatalogo> listarResinas();
 
     List<RespuestaOpcionCatalogo> listarColores();

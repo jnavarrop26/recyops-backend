@@ -15,17 +15,17 @@ import org.springframework.data.repository.query.Param;
 public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
 
     /**
-     * Trae proveedor, bodega y material en la misma consulta: {@code RespuestaEntrega}
-     * lee el nombre de los tres, y sin el fetch cada fila de la pagina dispararia
-     * tres selects extra (N+1).
+     * El listado no trae las lineas (ver {@code RespuestaEntrega.desde}), asi que
+     * solo hace falta el join a convenio/bodega/persona; total_kg ya viene
+     * denormalizado en la fila.
      */
     @Query(value = """
             select e from Entrega e
-            join fetch e.proveedor
+            left join fetch e.convenio
             join fetch e.bodega
-            join fetch e.tipoMaterial
+            left join fetch e.personaEntrega
             where (:bodegaId is null or e.bodega.id = :bodegaId)
-              and (:proveedorId is null or e.proveedor.id = :proveedorId)
+              and (:convenioId is null or e.convenio.id = :convenioId)
               and (:estado is null or e.estado = :estado)
               and (cast(:fechaDesde as timestamp) is null or e.fechaRecepcion >= :fechaDesde)
               and (cast(:fechaHasta as timestamp) is null or e.fechaRecepcion <= :fechaHasta)
@@ -34,34 +34,35 @@ public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
             countQuery = """
             select count(e) from Entrega e
             where (:bodegaId is null or e.bodega.id = :bodegaId)
-              and (:proveedorId is null or e.proveedor.id = :proveedorId)
+              and (:convenioId is null or e.convenio.id = :convenioId)
               and (:estado is null or e.estado = :estado)
               and (cast(:fechaDesde as timestamp) is null or e.fechaRecepcion >= :fechaDesde)
               and (cast(:fechaHasta as timestamp) is null or e.fechaRecepcion <= :fechaHasta)
             """)
     Page<Entrega> buscar(
             @Param("bodegaId") UUID bodegaId,
-            @Param("proveedorId") UUID proveedorId,
+            @Param("convenioId") UUID convenioId,
             @Param("estado") EstadoEntrega estado,
             @Param("fechaDesde") LocalDateTime fechaDesde,
             @Param("fechaHasta") LocalDateTime fechaHasta,
             Pageable paginacion);
 
-    /** Con el material resuelto: {@code RespuestaEntregaProveedor} lee su nombre. */
+    /** Entregas de los convenios de un proveedor (ver RespuestaEntregaProveedor). */
     @Query("""
             select e from Entrega e
-            join fetch e.tipoMaterial
-            where e.proveedor.id = :proveedorId
+            where e.convenio.proveedor.id = :proveedorId
             order by e.fechaRecepcion desc
             """)
-    List<Entrega> findByProveedorIdOrderByFechaRecepcionDesc(@Param("proveedorId") UUID proveedorId);
+    List<Entrega> findByConvenioProveedorIdOrderByFechaRecepcionDesc(@Param("proveedorId") UUID proveedorId);
 
-    /** Entrega con proveedor, bodega y material en una sola consulta (recibo PDF). */
+    /** Entrega con convenio, bodega, persona y lineas+material (recibo PDF). */
     @Query("""
             select e from Entrega e
-            join fetch e.proveedor
+            left join fetch e.convenio
             join fetch e.bodega
-            join fetch e.tipoMaterial
+            left join fetch e.personaEntrega
+            left join fetch e.lineas l
+            left join fetch l.tipoMaterial
             where e.id = :id
             """)
     Optional<Entrega> buscarConRelaciones(@Param("id") UUID id);
@@ -75,7 +76,7 @@ public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
     @Query(value = """
             select cast(fecha_recepcion as date) as dia,
                    count(*) as cantidad,
-                   coalesce(sum(peso_kg), 0) as peso
+                   coalesce(sum(total_kg), 0) as peso
             from entregas
             where fecha_recepcion >= :desde
             group by cast(fecha_recepcion as date)

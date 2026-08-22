@@ -9,7 +9,6 @@ import com.recyops.api.proveedor.interfaces.ProveedorService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -40,10 +39,9 @@ public class ProveedorController {
     public RespuestaPagina<RespuestaProveedor> listar(
             @RequestParam(required = false) EstadoProveedor estado,
             @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) BigDecimal calificacionMin,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return proveedorService.listar(estado, nombre, calificacionMin, page, size);
+        return proveedorService.listar(estado, nombre, page, size);
     }
 
     @PostMapping
@@ -60,11 +58,6 @@ public class ProveedorController {
     @PatchMapping("/{id}/estado")
     public RespuestaProveedor cambiarEstado(@PathVariable UUID id, @RequestParam EstadoProveedor valor) {
         return proveedorService.cambiarEstado(id, valor);
-    }
-
-    @PatchMapping("/{id}/calificacion")
-    public RespuestaProveedor calificar(@PathVariable UUID id, @RequestParam double valor) {
-        return proveedorService.calificar(id, valor);
     }
 
     @GetMapping("/{id}/entregas")

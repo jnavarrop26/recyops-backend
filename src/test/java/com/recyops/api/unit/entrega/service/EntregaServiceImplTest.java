@@ -14,8 +14,13 @@ import com.recyops.api.bodega.entity.Bodega;
 import com.recyops.api.bodega.excepciones.BodegaNoEncontradaException;
 import com.recyops.api.bodega.repository.BodegaRepository;
 import com.recyops.api.comun.excepciones.ReglaNegocioException;
+import com.recyops.api.convenio.entity.Convenio;
+import com.recyops.api.convenio.excepciones.ConvenioNoEncontradoException;
+import com.recyops.api.convenio.repository.ConvenioRepository;
 import com.recyops.api.entrega.dtos.CuerpoEntrega;
+import com.recyops.api.entrega.dtos.CuerpoLineaEntrega;
 import com.recyops.api.entrega.entity.Entrega;
+import com.recyops.api.entrega.entity.LineaEntrega;
 import com.recyops.api.entrega.enums.EstadoEntrega;
 import com.recyops.api.entrega.excepciones.EntregaNoEncontradaException;
 import com.recyops.api.entrega.excepciones.TransicionEstadoInvalidaException;
@@ -26,9 +31,9 @@ import com.recyops.api.inventario.interfaces.InventarioService;
 import com.recyops.api.material.entity.Material;
 import com.recyops.api.material.excepciones.MaterialNoEncontradoException;
 import com.recyops.api.material.repository.MaterialRepository;
-import com.recyops.api.proveedor.entity.Proveedor;
-import com.recyops.api.proveedor.excepciones.ProveedorNoEncontradoException;
-import com.recyops.api.proveedor.repository.ProveedorRepository;
+import com.recyops.api.usuario.entity.Usuario;
+import com.recyops.api.usuario.excepciones.UsuarioNoEncontradoException;
+import com.recyops.api.usuario.repository.UsuarioRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,10 +62,13 @@ class EntregaServiceImplTest {
     private EntregaRepository entregaRepository;
 
     @Mock
-    private ProveedorRepository proveedorRepository;
+    private ConvenioRepository convenioRepository;
 
     @Mock
     private BodegaRepository bodegaRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
 
     @Mock
     private MaterialRepository materialRepository;
@@ -80,18 +88,18 @@ class EntregaServiceImplTest {
     void listar_conFechasProvistas_convierteRangoALocalDateTime() {
         // Given
         var bodegaId = UUID.randomUUID();
-        var proveedorId = UUID.randomUUID();
+        var convenioId = UUID.randomUUID();
         var fechaDesde = LocalDate.of(2026, 1, 1);
         var fechaHasta = LocalDate.of(2026, 1, 31);
         var pagina = new PageImpl<Entrega>(List.of());
         var captorDesde = ArgumentCaptor.forClass(LocalDateTime.class);
         var captorHasta = ArgumentCaptor.forClass(LocalDateTime.class);
-        when(entregaRepository.buscar(eq(bodegaId), eq(proveedorId), eq(EstadoEntrega.RECIBIDA),
+        when(entregaRepository.buscar(eq(bodegaId), eq(convenioId), eq(EstadoEntrega.RECIBIDA),
                 captorDesde.capture(), captorHasta.capture(), eq(PageRequest.of(0, 20))))
                 .thenReturn(pagina);
 
         // When
-        entregaService.listar(bodegaId, proveedorId, EstadoEntrega.RECIBIDA, fechaDesde, fechaHasta, 0, 20);
+        entregaService.listar(bodegaId, convenioId, EstadoEntrega.RECIBIDA, fechaDesde, fechaHasta, 0, 20);
 
         // Then
         assertThat(captorDesde.getValue()).isEqualTo(fechaDesde.atStartOfDay());
@@ -115,7 +123,7 @@ class EntregaServiceImplTest {
     // ---- obtener ----
 
     @Test
-    void obtener_entregaExistente_retornaRespuestaEntrega() {
+    void obtener_entregaExistente_retornaRespuestaConLineas() {
         // Given
         var entrega = entregaCompleta(EstadoEntrega.RECIBIDA);
         when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
@@ -125,8 +133,10 @@ class EntregaServiceImplTest {
 
         // Then
         assertThat(actualRespuesta.codigo()).isEqualTo(entrega.getCodigo());
-        assertThat(actualRespuesta.proveedorNombre()).isEqualTo(entrega.getProveedor().getNombre());
+        assertThat(actualRespuesta.convenioNombre()).isEqualTo(entrega.getConvenio().getNombre());
         assertThat(actualRespuesta.bodegaNombre()).isEqualTo(entrega.getBodega().getNombre());
+        assertThat(actualRespuesta.lineas()).hasSize(1);
+        assertThat(actualRespuesta.lineas().get(0).tipoMaterialNombre()).isEqualTo("PET transparente");
     }
 
     @Test
@@ -143,16 +153,18 @@ class EntregaServiceImplTest {
     // ---- registrar ----
 
     @Test
-    void registrar_conFechaRecepcionProvista_guardaEntregaYRegistraEntradaEnInventario() {
+    void registrar_conFechaRecepcionProvista_guardaEntregaConLineasYRegistraEntradasEnInventario() {
         // Given
-        var proveedor = Proveedor.builder().id(UUID.randomUUID()).nombre("Proveedor Uno").build();
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
         var bodega = Bodega.builder().id(UUID.randomUUID()).nombre("Bodega Central").build();
+        var persona = Usuario.builder().id(UUID.randomUUID()).nombreCompleto("Juan Perez").cedula("123").build();
         var material = Material.builder().id(UUID.randomUUID()).nombre("PET transparente").build();
         var fechaRecepcion = LocalDateTime.of(2026, 3, 1, 10, 0);
-        var cuerpo = new CuerpoEntrega(proveedor.getId(), bodega.getId(), material.getId(),
-                new BigDecimal("50.00"), "Juan Perez", fechaRecepcion);
-        when(proveedorRepository.findById(proveedor.getId())).thenReturn(Optional.of(proveedor));
+        var cuerpo = new CuerpoEntrega(convenio.getId(), bodega.getId(), persona.getId(), fechaRecepcion,
+                List.of(new CuerpoLineaEntrega(material.getId(), new BigDecimal("50.00"))));
+        when(convenioRepository.findById(convenio.getId())).thenReturn(Optional.of(convenio));
         when(bodegaRepository.findById(bodega.getId())).thenReturn(Optional.of(bodega));
+        when(usuarioRepository.findById(persona.getId())).thenReturn(Optional.of(persona));
         when(materialRepository.findById(material.getId())).thenReturn(Optional.of(material));
         when(entregaRepository.siguienteConsecutivo()).thenReturn(42L);
         var captorEntrega = ArgumentCaptor.forClass(Entrega.class);
@@ -165,52 +177,63 @@ class EntregaServiceImplTest {
         var entregaGuardada = captorEntrega.getValue();
         assertThat(entregaGuardada.getCodigo()).isEqualTo("ENT-000042");
         assertThat(entregaGuardada.getFechaRecepcion()).isEqualTo(fechaRecepcion);
+        assertThat(entregaGuardada.getTotalKg()).isEqualByComparingTo("50.00");
+        assertThat(entregaGuardada.getLineas()).hasSize(1);
         assertThat(actualRespuesta.codigo()).isEqualTo("ENT-000042");
+        assertThat(actualRespuesta.lineas()).hasSize(1);
         verify(inventarioService).registrarEntrada(bodega.getId(), material.getId(),
                 new BigDecimal("50.00"), "ENT-000042");
     }
 
     @Test
-    void registrar_sinFechaRecepcionProvista_usaFechaActual() {
+    void registrar_conVariasLineas_sumaElTotalYRegistraUnaEntradaPorLinea() {
         // Given
-        var proveedor = Proveedor.builder().id(UUID.randomUUID()).nombre("Proveedor Uno").build();
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
         var bodega = Bodega.builder().id(UUID.randomUUID()).nombre("Bodega Central").build();
-        var material = Material.builder().id(UUID.randomUUID()).nombre("PET transparente").build();
-        var cuerpo = new CuerpoEntrega(proveedor.getId(), bodega.getId(), material.getId(),
-                new BigDecimal("50.00"), "Juan Perez", null);
-        when(proveedorRepository.findById(proveedor.getId())).thenReturn(Optional.of(proveedor));
+        var persona = Usuario.builder().id(UUID.randomUUID()).nombreCompleto("Juan Perez").build();
+        var materialUno = Material.builder().id(UUID.randomUUID()).nombre("PET transparente").build();
+        var materialDos = Material.builder().id(UUID.randomUUID()).nombre("Carton").build();
+        var cuerpo = new CuerpoEntrega(convenio.getId(), bodega.getId(), persona.getId(), null,
+                List.of(new CuerpoLineaEntrega(materialUno.getId(), new BigDecimal("30.00")),
+                        new CuerpoLineaEntrega(materialDos.getId(), new BigDecimal("20.00"))));
+        when(convenioRepository.findById(convenio.getId())).thenReturn(Optional.of(convenio));
         when(bodegaRepository.findById(bodega.getId())).thenReturn(Optional.of(bodega));
-        when(materialRepository.findById(material.getId())).thenReturn(Optional.of(material));
-        when(entregaRepository.siguienteConsecutivo()).thenReturn(1L);
-        var captorEntrega = ArgumentCaptor.forClass(Entrega.class);
-        when(entregaRepository.save(captorEntrega.capture())).thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.findById(persona.getId())).thenReturn(Optional.of(persona));
+        when(materialRepository.findById(materialUno.getId())).thenReturn(Optional.of(materialUno));
+        when(materialRepository.findById(materialDos.getId())).thenReturn(Optional.of(materialDos));
+        when(entregaRepository.siguienteConsecutivo()).thenReturn(7L);
+        when(entregaRepository.save(any(Entrega.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // When
-        entregaService.registrar(cuerpo);
+        var actualRespuesta = entregaService.registrar(cuerpo);
 
         // Then
-        assertThat(captorEntrega.getValue().getFechaRecepcion()).isNotNull();
+        assertThat(actualRespuesta.totalKg()).isEqualByComparingTo("50.00");
+        verify(inventarioService).registrarEntrada(bodega.getId(), materialUno.getId(),
+                new BigDecimal("30.00"), "ENT-000007");
+        verify(inventarioService).registrarEntrada(bodega.getId(), materialDos.getId(),
+                new BigDecimal("20.00"), "ENT-000007");
     }
 
     @Test
-    void registrar_proveedorInexistente_lanzaProveedorNoEncontradoException() {
+    void registrar_convenioInexistente_lanzaConvenioNoEncontradoException() {
         // Given
-        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                new BigDecimal("50.00"), "Juan Perez", null);
-        when(proveedorRepository.findById(cuerpo.proveedorId())).thenReturn(Optional.empty());
+        var cuerpo = new CuerpoEntrega(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), new BigDecimal("50.00"))));
+        when(convenioRepository.findById(cuerpo.convenioId())).thenReturn(Optional.empty());
 
         // When-Then
         assertThatThrownBy(() -> entregaService.registrar(cuerpo))
-                .isInstanceOf(ProveedorNoEncontradoException.class);
+                .isInstanceOf(ConvenioNoEncontradoException.class);
     }
 
     @Test
     void registrar_bodegaInexistente_lanzaBodegaNoEncontradaException() {
         // Given
-        var proveedor = Proveedor.builder().id(UUID.randomUUID()).nombre("Proveedor Uno").build();
-        var cuerpo = new CuerpoEntrega(proveedor.getId(), UUID.randomUUID(), UUID.randomUUID(),
-                new BigDecimal("50.00"), "Juan Perez", null);
-        when(proveedorRepository.findById(proveedor.getId())).thenReturn(Optional.of(proveedor));
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
+        var cuerpo = new CuerpoEntrega(convenio.getId(), UUID.randomUUID(), UUID.randomUUID(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), new BigDecimal("50.00"))));
+        when(convenioRepository.findById(convenio.getId())).thenReturn(Optional.of(convenio));
         when(bodegaRepository.findById(cuerpo.bodegaId())).thenReturn(Optional.empty());
 
         // When-Then
@@ -219,15 +242,33 @@ class EntregaServiceImplTest {
     }
 
     @Test
-    void registrar_materialInexistente_lanzaMaterialNoEncontradoException() {
+    void registrar_personaEntregaInexistente_lanzaUsuarioNoEncontradoException() {
         // Given
-        var proveedor = Proveedor.builder().id(UUID.randomUUID()).nombre("Proveedor Uno").build();
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
         var bodega = Bodega.builder().id(UUID.randomUUID()).nombre("Bodega Central").build();
-        var cuerpo = new CuerpoEntrega(proveedor.getId(), bodega.getId(), UUID.randomUUID(),
-                new BigDecimal("50.00"), "Juan Perez", null);
-        when(proveedorRepository.findById(proveedor.getId())).thenReturn(Optional.of(proveedor));
+        var cuerpo = new CuerpoEntrega(convenio.getId(), bodega.getId(), UUID.randomUUID(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), new BigDecimal("50.00"))));
+        when(convenioRepository.findById(convenio.getId())).thenReturn(Optional.of(convenio));
         when(bodegaRepository.findById(bodega.getId())).thenReturn(Optional.of(bodega));
-        when(materialRepository.findById(cuerpo.tipoMaterialId())).thenReturn(Optional.empty());
+        when(usuarioRepository.findById(cuerpo.personaEntregaId())).thenReturn(Optional.empty());
+
+        // When-Then
+        assertThatThrownBy(() -> entregaService.registrar(cuerpo))
+                .isInstanceOf(UsuarioNoEncontradoException.class);
+    }
+
+    @Test
+    void registrar_materialDeUnaLineaInexistente_lanzaMaterialNoEncontradoException() {
+        // Given
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
+        var bodega = Bodega.builder().id(UUID.randomUUID()).nombre("Bodega Central").build();
+        var persona = Usuario.builder().id(UUID.randomUUID()).nombreCompleto("Juan Perez").build();
+        var cuerpo = new CuerpoEntrega(convenio.getId(), bodega.getId(), persona.getId(), null,
+                List.of(new CuerpoLineaEntrega(UUID.randomUUID(), new BigDecimal("50.00"))));
+        when(convenioRepository.findById(convenio.getId())).thenReturn(Optional.of(convenio));
+        when(bodegaRepository.findById(bodega.getId())).thenReturn(Optional.of(bodega));
+        when(usuarioRepository.findById(persona.getId())).thenReturn(Optional.of(persona));
+        when(materialRepository.findById(any())).thenReturn(Optional.empty());
 
         // When-Then
         assertThatThrownBy(() -> entregaService.registrar(cuerpo))
@@ -262,7 +303,7 @@ class EntregaServiceImplTest {
     }
 
     @Test
-    void cambiarEstado_aDespachada_registraSalidaEnInventario() {
+    void cambiarEstado_aDespachada_registraSalidaPorCadaLineaEnInventario() {
         // Given
         var entrega = entregaCompleta(EstadoEntrega.PROCESADA);
         when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
@@ -272,8 +313,9 @@ class EntregaServiceImplTest {
 
         // Then
         assertThat(actualRespuesta.estado()).isEqualTo(EstadoEntrega.DESPACHADA);
-        verify(inventarioService).registrarSalida(entrega.getBodega().getId(), entrega.getTipoMaterial().getId(),
-                entrega.getPesoKg(), "Despacho " + entrega.getCodigo());
+        var linea = entrega.getLineas().get(0);
+        verify(inventarioService).registrarSalida(entrega.getBodega().getId(), linea.getTipoMaterial().getId(),
+                linea.getPesoKg(), "Despacho " + entrega.getCodigo());
     }
 
     @Test
@@ -290,7 +332,7 @@ class EntregaServiceImplTest {
     // ---- eliminar ----
 
     @Test
-    void eliminar_entregaNoDespachada_reviertaEntradaEnInventarioYElimina() {
+    void eliminar_entregaNoDespachada_reviertaEntradasPorCadaLineaYElimina() {
         // Given
         var entrega = entregaCompleta(EstadoEntrega.RECIBIDA);
         when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
@@ -299,8 +341,9 @@ class EntregaServiceImplTest {
         entregaService.eliminar(entrega.getId());
 
         // Then
-        verify(inventarioService).registrarSalida(entrega.getBodega().getId(), entrega.getTipoMaterial().getId(),
-                entrega.getPesoKg(), "Eliminacion " + entrega.getCodigo());
+        var linea = entrega.getLineas().get(0);
+        verify(inventarioService).registrarSalida(entrega.getBodega().getId(), linea.getTipoMaterial().getId(),
+                linea.getPesoKg(), "Eliminacion " + entrega.getCodigo());
         verify(entregaRepository).delete(entrega);
     }
 
@@ -360,20 +403,26 @@ class EntregaServiceImplTest {
     // ---- datos de prueba ----
 
     private Entrega entregaCompleta(EstadoEntrega estado) {
-        var proveedor = Proveedor.builder().id(UUID.randomUUID()).nombre("Proveedor Uno").build();
+        var convenio = Convenio.builder().id(UUID.randomUUID()).nombre("Convenio Uno").build();
         var bodega = Bodega.builder().id(UUID.randomUUID()).nombre("Bodega Central").build();
+        var persona = Usuario.builder().id(UUID.randomUUID()).nombreCompleto("Juan Perez").cedula("123").build();
         var material = Material.builder().id(UUID.randomUUID()).nombre("PET transparente").build();
-        return Entrega.builder()
+        Entrega entrega = Entrega.builder()
                 .id(UUID.randomUUID())
                 .codigo("ENT-000001")
-                .proveedor(proveedor)
+                .convenio(convenio)
                 .bodega(bodega)
-                .tipoMaterial(material)
-                .pesoKg(new BigDecimal("50.00"))
-                .personaEntrega("Juan Perez")
+                .personaEntrega(persona)
+                .totalKg(new BigDecimal("50.00"))
                 .estado(estado)
                 .fechaRecepcion(LocalDateTime.now())
                 .usuarioRegistroNombre("sistema")
                 .build();
+        entrega.getLineas().add(LineaEntrega.builder()
+                .entrega(entrega)
+                .tipoMaterial(material)
+                .pesoKg(new BigDecimal("50.00"))
+                .build());
+        return entrega;
     }
 }

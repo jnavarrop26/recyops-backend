@@ -400,12 +400,12 @@ class UsuarioServiceImplTest {
     }
 
     private CuerpoTrabajador cuerpoTrabajador(String password) {
-        return new CuerpoTrabajador("Juan Perez", "jperez", "jperez@test.com", "3000000000",
+        return new CuerpoTrabajador("Juan Perez", "jperez", "jperez@test.com", "123456789", "3000000000",
                 UUID.randomUUID(), UUID.randomUUID(), password);
     }
 
     private CuerpoEditarTrabajador cuerpoEditarTrabajador() {
-        return new CuerpoEditarTrabajador("Juan Perez Editado", "3000000001",
+        return new CuerpoEditarTrabajador("Juan Perez Editado", "123456789", "3000000001",
                 UUID.randomUUID(), UUID.randomUUID());
     }
 

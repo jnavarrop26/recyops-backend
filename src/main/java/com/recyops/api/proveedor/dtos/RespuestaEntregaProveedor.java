@@ -9,8 +9,7 @@ import java.util.UUID;
 public record RespuestaEntregaProveedor(
         UUID id,
         String codigo,
-        String tipoMaterialNombre,
-        BigDecimal pesoKg,
+        BigDecimal totalKg,
         String estado,
         LocalDateTime fechaRecepcion) {
 
@@ -18,8 +17,7 @@ public record RespuestaEntregaProveedor(
         return new RespuestaEntregaProveedor(
                 entrega.getId(),
                 entrega.getCodigo(),
-                entrega.getTipoMaterial().getNombre(),
-                entrega.getPesoKg(),
+                entrega.getTotalKg(),
                 entrega.getEstado().name(),
                 entrega.getFechaRecepcion());
     }

@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -45,11 +44,6 @@ public class Proveedor {
     private String email;
 
     private String direccion;
-
-    /** Promedio 0.0 a 5.0 asignado con las estrellas del cliente. */
-    @Builder.Default
-    @Column(nullable = false, precision = 3, scale = 1)
-    private BigDecimal calificacion = BigDecimal.ZERO;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

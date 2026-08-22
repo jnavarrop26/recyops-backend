@@ -11,8 +11,5 @@ public interface OpcionCatalogoRepository extends JpaRepository<OpcionCatalogo, 
 
     List<OpcionCatalogo> findByTipoOrderByNombre(TipoOpcionCatalogo tipo);
 
-    List<OpcionCatalogo> findByTipoAndCategoriaPadreCodigoOrderByNombre(TipoOpcionCatalogo tipo,
-            String categoriaPadreCodigo);
-
     Optional<OpcionCatalogo> findByTipoAndCodigo(TipoOpcionCatalogo tipo, String codigo);
 }

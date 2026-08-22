@@ -71,14 +71,6 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RespuestaOpcionCatalogo> listarSubcategorias(String categoria) {
-        return catalogoRepository
-                .findByTipoAndCategoriaPadreCodigoOrderByNombre(TipoOpcionCatalogo.SUBCATEGORIA, categoria)
-                .stream().map(RespuestaOpcionCatalogo::desde).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<RespuestaOpcionCatalogo> listarResinas() {
         return listarOpciones(TipoOpcionCatalogo.RESINA);
     }
@@ -97,8 +89,7 @@ public class MaterialServiceImpl implements MaterialService {
     private void aplicarCuerpo(Material material, CuerpoMaterial cuerpo) {
         material.setNombre(cuerpo.nombre());
         material.setCategoria(resolver(TipoOpcionCatalogo.CATEGORIA, cuerpo.categoriaCodigo()));
-        material.setSubcategoria(resolverOpcional(TipoOpcionCatalogo.SUBCATEGORIA, cuerpo.subcategoriaCodigo()));
-        material.setResina(resolverOpcional(TipoOpcionCatalogo.RESINA, cuerpo.codigoResinaCodigo()));
+        material.setResina(resolverOpcional(TipoOpcionCatalogo.RESINA, cuerpo.resinaCodigo()));
         material.setColor(resolverOpcional(TipoOpcionCatalogo.COLOR, cuerpo.colorCodigo()));
         material.setUnidadMedida(cuerpo.unidadMedida());
         material.setUnidadEmpaque(cuerpo.unidadEmpaque());
